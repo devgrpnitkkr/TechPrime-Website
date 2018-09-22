@@ -70,11 +70,21 @@ request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token='+req.query.acc
     if(snapshot.hasChild('users/'+email))
     {
       console.log('present');
+      var data={
+        isRegistered:true,
+        body:body
+      };
+      response.json(data);
     }
     else {
+      //ref=databse.ref('users');
+      database.ref('users/'+email).set({
+        email: email,
+        name: body.email,
+      });
       console.log('not present');
     }
   });
-  response.json(body);
+  //response.json(body);
 });
 });
