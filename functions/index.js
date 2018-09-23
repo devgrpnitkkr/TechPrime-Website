@@ -22,29 +22,29 @@ exports.sayHi = functions.https.onRequest(function(request, res){
   res.send("worfdsfjdfking!");
 });
 
+/*function googleLogin()
+{
+    console.log('tried popup');
+    var provider=new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then(function(result){
+      var token=result.credential.accessToken;
+      console.log(token);
+    });
+}
+exports.login = functions.https.onRequest(function(req,res){
+  googleLogin();
+});
 /*exports.googleLogin = functions.https.onRequest(function(req,res){
-  var config = {
-      apiKey: "AIzaSyDbSzyKjE4a_ErNwWrM8zkWraN5yQ-z1Og",
-      authDomain: "loginapi123.firebaseapp.com",
-      databaseURL: "https://loginapi123.firebaseio.com",
-      projectId: "loginapi123",
-      storageBucket: "loginapi123.appspot.com",
-      messagingSenderId: "223911079496"
-    };
-    firebase.initializeApp(config);
+  console.log('tried popup');
   var provider=new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(provider).then(function(result) {
-  var token = result.credential.accessToken;
-  user = result.user;
+  //var token = result.credential.accessToken;
+  //user = result.user;
   console.log('logged in');
-  res.json({token:token});
+  res.send('something is working');
 });
-});*/
+});/*
 
-exports.googleLogin = functions.https.onRequest(function(req,res){
-    var token= req.body.token;
-
-});
 /*exports.token = functions.https.onRequest(function(req,response){
   const request = require('request');
 
@@ -59,10 +59,18 @@ request('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY', { json: true }, 
 exports.googleToken = functions.https.onRequest(function(req,response){
   const request = require('request');
 //console.log(req.query.accessToken+'these are params');
-request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token='+req.query.accessToken, { json: true }, (err, res, body) => {
+request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.accessToken, { json: true }, (err, res, body) => {
   if (err) { return console.log(err); }
-  console.log(body.email);
-  var email1 =body.email;
+  //console.log(body);
+  console.log(body.emails[0].value);
+  if(body.emails[0].value==undefined)
+  {
+    data={
+      authenticatedRequest:false,
+    };
+    response.json(data);
+  }
+  var email1 =body.emails[0].value;
   var email=email1.replace(/\./g,',');
   console.log(email);
   var ref =database.ref();
@@ -70,7 +78,11 @@ request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token='+req.query.acc
     if(snapshot.hasChild('users/'+email))
     {
       console.log('present');
+      console.log(snapshot);
       var data={
+
+        //onBoard:snapshot.value.users.email.onBoard,
+        authenticatedRequest:true,
         isRegistered:true,
         body:body
       };
@@ -79,10 +91,17 @@ request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token='+req.query.acc
     else {
       //ref=databse.ref('users');
       database.ref('users/'+email).set({
-        email: email,
-        name: body.email,
+        onBoard:false,
+        email: body.emails[0].value,
+        name: body.name.givenName+" "+body.name.familyName,
       });
       console.log('not present');
+      data={
+        authenticatedRequest:true,
+        isRegistered:false,
+        body:body
+      };
+      response.json(data);
     }
   });
   //response.json(body);
