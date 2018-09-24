@@ -56,19 +56,20 @@ request('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY', { json: true }, 
 });
 });
 */
-exports.googleToken = functions.https.onRequest(function(req,response){
+exports.googleLogin = functions.https.onRequest(function(req,response){
   const request = require('request');
 //console.log(req.query.accessToken+'these are params');
 request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.accessToken, { json: true }, (err, res, body) => {
-  if (err) { return console.log(err); }
-  //console.log(body);
-  console.log(body.emails[0].value);
-  if(body.emails[0].value==undefined)
-  {
+  if (err) { return console.log(err);
+ }
+  console.log(body);
+  //console.log(body.emails[0].value);
+  if(body.error!=null){
+    console.log('error in accessToken');
     data={
-      authenticatedRequest:false,
-    };
-    response.json(data);
+    authenticatedRequest:false,
+  };
+  return response.json(data);
   }
   var email1 =body.emails[0].value;
   var email=email1.replace(/\./g,',');
@@ -78,15 +79,25 @@ request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.a
     if(snapshot.hasChild('users/'+email))
     {
       console.log('present');
-      console.log(snapshot);
-      var data={
+      //console.log(snapshot.val());
+      //console.log(snapshot.val().users.onBoard);
+      var reff=database.ref('users/'+email);
+      var onB;
+      reff.once('value',function(snap){
+        console.log(snap.val().onBoard);
+        onB=snap.val().onBoard;
+        console.log(onB);
+        var data={
 
-        //onBoard:snapshot.value.users.email.onBoard,
-        authenticatedRequest:true,
-        isRegistered:true,
-        body:body
-      };
-      response.json(data);
+          onBoard:onB,
+          authenticatedRequest:true,
+          isRegistered:true,
+          body:body
+        };
+        response.json(data);
+      });
+      console.log('onboard is'+onB);
+
     }
     else {
       //ref=databse.ref('users');
@@ -97,6 +108,7 @@ request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.a
       });
       console.log('not present');
       data={
+        onBoard:false,
         authenticatedRequest:true,
         isRegistered:false,
         body:body
@@ -106,4 +118,41 @@ request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.a
   });
   //response.json(body);
 });
+});
+
+exports.signUp = functions.https.onRequest(function(req,response){
+  const request = require('request');
+  request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.accessToken, { json: true }, (err, res, body) => {
+  if (err) { return console.log(err); }
+  console.log(body);
+  if(body.error!=null)
+  {
+    data={
+      authenticatedRequest:false,
+    };
+    return response.json(data);
+  }
+  else {
+    var email1=body.emails[0].value;
+    console.log(email1);
+    var email=email1.replace(/\./g,',');
+    var ref=database.ref('users/');
+    ref.once('value',function(snapshot){
+      console.log(snapshot.val());
+      if(snapshot.hasChild(email)){
+          console.log('present');
+          //response.send('chal raha hai');
+          database.ref('users/'+email).update({
+            onBoard:true,
+            //trial:'lola',
+            //eir:'df'
+            college:req.query.college,
+            year:req.query.year,
+          });
+          response.send('database updated');
+      }
+    });
+  }
+});
+
 });
