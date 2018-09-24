@@ -146,6 +146,7 @@ exports.signUp = functions.https.onRequest(function(req,response){
             onBoard:true,
             //trial:'lola',
             //eir:'df'
+            phone:req.query.phone,
             college:req.query.college,
             year:req.query.year,
           });
