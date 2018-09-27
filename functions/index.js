@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 admin.initializeApp();
 let database = admin.database();
 
-
+//login start
 exports.googleLogin = functions.https.onRequest(function(req,response){
     let accToken = req.query.accessToken;
     const request = require('request');
@@ -72,6 +72,7 @@ exports.googleLogin = functions.https.onRequest(function(req,response){
         });
     });
 });
+//login end
 
 
 let express = require('express');
@@ -81,47 +82,61 @@ let app = express();
 app.use(bodyParser.urlencoded({extended:false}));
 
 
-app.post('/',function(req,response)
+// middleware start
+function isAuthenticated(req , res , next) {
+  if(req.body.accessToken === undefined || req.body.accessToken === '') res.json({error: true});
+  else {
+    jwt.verify(req.body.accessToken, "abab", (err, data) => {
+      if (err) {
+          res.json({error: true});
+      }
+      else
+      {
+        if (data.error != null) {
+            return res.json({
+                authenticatedRequest: false,
+            });
+        }
+        else {
+          let email = data.body.emails[0].value;
+          let name = data.body.name.givenName+" "+data.body.name.familyName;
+          console.log(email);
+          req.body.email1 = email;
+          req.body.name = name;
+          next();
+        }
+      }
+    });
+  }
+}
+// middleware end
+
+
+app.post('/', isAuthenticated ,function(req,response)
 {
-    if(req.body.accessToken === undefined || req.body.accessToken === '') response.json({error: true});
+    if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
+        return response.send('please pass valid/complete url parameters');
+    }
     else
     {
-        jwt.verify(req.body.accessToken, "abab", (err, data) => {
-            if (err) {
-                response.json({error: true});
-            }
-            else
+        //console.log(req.body.email1);
+        //console.log(req.body.name);
+        let email1 = req.body.email1;
+        let email = email1.replace(/\./g, ',');
+        let ref = database.ref('users/');
+        let email_child = "users/"+email;
+        ref.once('value', function (snapshot) {
+            console.log(snapshot.val());
+            if (snapshot.hasChild(email))
             {
-                if (data.error != null) {
-                    return response.json({
-                        authenticatedRequest: false,
-                    });
-                }
-                if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
-                    return response.send('please pass valid/complete url parameters');
-                }
-                else
-                {
-                    let email1 = data.body.emails[0].value;
-                    console.log(email1);
-                    let email = email1.replace(/\./g, ',');
-                    let ref = database.ref('users/');
-                    let email_child = "users/"+email;
-                    ref.once('value', function (snapshot) {
-                        console.log(snapshot.val());
-                        if (snapshot.hasChild(email))
-                        {
-                            console.log('present');
-                            database.ref(email_child).update({
-                                onBoard: true,
-                                phone: req.body.phone,
-                                college: req.body.college,
-                                year: req.body.year,
-                            });
-                            response.send('database updated');
-                        }
-                    });
-                }
+                console.log('present');
+                database.ref(email_child).update({
+                    onBoard: true,
+                    phone: req.body.phone,
+                    college: req.body.college,
+                    year: req.body.year,
+                });
+                response.send('database updated');
             }
         });
     }
