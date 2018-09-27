@@ -2,73 +2,19 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const firebase = require('firebase');
 admin.initializeApp();
-var config = {
-    apiKey: "AIzaSyDbSzyKjE4a_ErNwWrM8zkWraN5yQ-z1Og",
-    authDomain: "loginapi123.firebaseapp.com",
-    databaseURL: "https://loginapi123.firebaseio.com",
-    projectId: "loginapi123",
-    storageBucket: "loginapi123.appspot.com",
-    messagingSenderId: "223911079496"
-  };
-  firebase.initializeApp(config);
-  var database=firebase.database();
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
-exports.sayHi = functions.https.onRequest(function(request, res){
-  res.send("worfdsfjdfking!");
-});
+var database=admin.database();
 
-/*function googleLogin()
-{
-    console.log('tried popup');
-    var provider=new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).then(function(result){
-      var token=result.credential.accessToken;
-      console.log(token);
-    });
-}
-exports.login = functions.https.onRequest(function(req,res){
-  googleLogin();
-});
-/*exports.googleLogin = functions.https.onRequest(function(req,res){
-  console.log('tried popup');
-  var provider=new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider).then(function(result) {
-  //var token = result.credential.accessToken;
-  //user = result.user;
-  console.log('logged in');
-  res.send('something is working');
-});
-});/*
-
-/*exports.token = functions.https.onRequest(function(req,response){
-  const request = require('request');
-
-request('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY', { json: true }, (err, res, body) => {
-  if (err) { return console.log(err); }
-  console.log(body.url);
-  console.log(body.explanation);
-  response.json({value:body});
-});
-});
-*/
 exports.googleLogin = functions.https.onRequest(function(req,response){
   const request = require('request');
-//console.log(req.query.accessToken+'these are params');
-request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.accessToken, { json: true }, (err, res, body) => {
-  if (err) { return console.log(err);
- }
+  request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.accessToken, { json: true }, (err, res, body) => {
+    if (err) { return console.log(err);
+    }
   console.log(body);
-  //console.log(body.emails[0].value);
   if(body.error!=null){
     console.log('error in accessToken');
     data={
-    authenticatedRequest:false,
-  };
+      authenticatedRequest:false,
+      };
   return response.json(data);
   }
   var email1 =body.emails[0].value;
@@ -100,7 +46,6 @@ request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.a
 
     }
     else {
-      //ref=databse.ref('users');
       database.ref('users/'+email).set({
         onBoard:false,
         email: body.emails[0].value,
@@ -116,15 +61,21 @@ request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.a
       response.json(data);
     }
   });
-  //response.json(body);
 });
 });
-
-exports.signUp = functions.https.onRequest(function(req,response){
+var qs=require('querystring');
+var express=require('express');
+var bodyParser= require('body-parser');
+var app=express();
+app.use(bodyParser.urlencoded({extended:false}));
+app.post('/', function(req,response){
   const request = require('request');
-  request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.query.accessToken, { json: true }, (err, res, body) => {
+  request('https://www.googleapis.com/plus/v1/people/me?access_token='+req.body.accessToken, { json: true }, (err, res, body) => {
   if (err) { return console.log(err); }
   console.log(body);
+  if(req.body.phone == undefined || req.body.college==undefined || req.body.year==undefined){
+    return response.send('please pass valid/complete url parameters');
+  }
   if(body.error!=null)
   {
     data={
@@ -141,19 +92,16 @@ exports.signUp = functions.https.onRequest(function(req,response){
       console.log(snapshot.val());
       if(snapshot.hasChild(email)){
           console.log('present');
-          //response.send('chal raha hai');
           database.ref('users/'+email).update({
             onBoard:true,
-            //trial:'lola',
-            //eir:'df'
-            phone:req.query.phone,
-            college:req.query.college,
-            year:req.query.year,
+            phone:req.body.phone,
+            college:req.body.college,
+            year:req.body.year,
           });
           response.send('database updated');
       }
     });
   }
 });
-
 });
+exports.signUp = functions.https.onRequest(app);
