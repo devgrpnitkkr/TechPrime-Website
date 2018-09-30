@@ -323,3 +323,76 @@ exports.getEventTimeline = functions.https.onRequest((req,res) => {
         return res.send(err)
     })
 })
+
+
+exports.eventRegister = functions.https.onRequest((req, response) => {
+    let access_token = req.query.accessToken;
+    let eventName = req.query.event;
+
+    if(access_token == null || eventName == null)
+    {
+        response.send("Invalid Parameters.");
+    }
+
+    const request = require('request');
+    request('https://www.googleapis.com/plus/v1/people/me?access_token='+access_token, { json: true }, (err, res, body) => {
+        let data;
+        if(err)
+        {
+          return console.log(err);
+        }
+        console.log(body);
+        if(body.error != null)
+        {
+            console.log(body.error);
+            console.log('error in accessToken');
+            data={
+                authenticatedRequest:false,
+            };
+            response.json(data);
+        }
+
+        let email1 = body.emails[0].value;
+        let email = email1.replace(/\./g,',');
+        console.log(email);
+        let node = "userRegistrations/"+ eventName;
+        console.log(node);
+        // let db = database.ref();
+        let db = admin.database().ref();
+
+        db.child(`${node}`).push(email);
+
+        db.child("users/" + email + "/events").once('value')
+        .then((snapshot) => {
+            let eventString = snapshot.val();
+
+            let newEventString = null;
+            if(eventString == null)
+            {
+                newEventString = eventName;
+            }
+            else
+            {
+                newEventString = eventString + ", " + eventName;
+            }
+
+
+        	db.child("/users/" + email).update({
+        		"events": newEventString
+            })
+            .then(() => {
+                response.send("Registered");
+            })
+            .catch((error) => {
+                console.log(error);
+                response.send("Could not Register!");
+            })
+            
+            
+        })
+        .catch(() => {
+            console.log(error);
+            response.send("Error");
+        })
+    });
+});
