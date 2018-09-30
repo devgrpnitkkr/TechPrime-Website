@@ -1,14 +1,13 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
-
+const request = require('request');
 admin.initializeApp();
 let database = admin.database();
 
 //login start
 exports.googleLogin = functions.https.onRequest(function(req,response){
     let accToken = req.query.accessToken;
-    const request = require('request');
     request('https://www.googleapis.com/plus/v1/people/me?access_token='+accToken, { json: true }, (err, res, body) => {
         let data;
         if(err)
@@ -331,17 +330,17 @@ exports.eventRegister = functions.https.onRequest((req, response) => {
 
     if(access_token == null || eventName == null)
     {
-        response.send("Invalid Parameters.");
+        response.json({"error":"Invalid Parameters. Need access token and event Name."});
     }
 
-    const request = require('request');
+    
     request('https://www.googleapis.com/plus/v1/people/me?access_token='+access_token, { json: true }, (err, res, body) => {
         let data;
         if(err)
         {
           return console.log(err);
         }
-        console.log(body);
+    
         if(body.error != null)
         {
             console.log(body.error);
@@ -351,48 +350,52 @@ exports.eventRegister = functions.https.onRequest((req, response) => {
             };
             response.json(data);
         }
+        
+        let email = getEmail(body);
 
-        let email1 = body.emails[0].value;
-        let email = email1.replace(/\./g,',');
-        console.log(email);
         let node = "userRegistrations/"+ eventName;
-        console.log(node);
-        // let db = database.ref();
-        let db = admin.database().ref();
+        
 
         db.child(`${node}`).push(email);
 
-        db.child("users/" + email + "/events").once('value')
+        db.child("users/" + email + "/registeredEvents").once('value')
         .then((snapshot) => {
+            
             let eventString = snapshot.val();
-
             let newEventString = null;
+            
             if(eventString == null)
             {
                 newEventString = eventName;
             }
             else
             {
-                newEventString = eventString + ", " + eventName;
+                newEventString = eventString + "," + eventName;
             }
 
-
-        	db.child("/users/" + email).update({
-        		"events": newEventString
+        	db.child("users/" + email).update({
+        		"registeredEvents": newEventString
             })
             .then(() => {
-                response.send("Registered");
+                response.json({status:"Successfully registered for "+eventName});
             })
-            .catch((error) => {
-                console.log(error);
-                response.send("Could not Register!");
+            .catch((err) => {
+                console.log(err);
+                response.json({error:"Could not Register!"});
             })
             
             
         })
-        .catch(() => {
-            console.log(error);
-            response.send("Error");
+        .catch((err) => {
+            console.log(err);
+            response.json({"error":err});
         })
     });
 });
+
+function getEmail(body)
+{
+    let email = body.emails[0].value;
+    let formattedEmail = email.replace(/\./g,',');
+    return formattedEmail;
+}
