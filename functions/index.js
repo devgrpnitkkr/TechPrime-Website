@@ -45,16 +45,22 @@ exports.addEvent = functions.https.onRequest((req,res) => {
 	.then((snapshot) => {
 		console.log(`Added ${eventData.eventName} to timeline succesfully`);
 	}).catch((err) => {
-		res.send(`Error occured while adding event to the timeline\nError : ${err}`);
+		res.send({
+			message: `Error occured while adding event to the timeline\nError : ${err}`
+		});
 	})
 
 	// adding event with full description to the node 
 	// with all the json data received
 	db.child(`${eventDescription}/${eventData.category}/${eventData.eventName}`).set(eventData)
 	.then((snapshot) => {
-		return res.send(`Added ${snapshot.val()} successfully`);
+		return res.send({
+			message: `Added ${snapshot.val()} successfully`
+		});
 	}).catch((err) => {
-		return res.send(`Error occured when adding events to the description node\nError : ${err}`);
+		return res.send({
+			message: `Error occured when adding events to the description node\nError : ${err}`
+		});
 	}) 
 })
 
@@ -75,7 +81,9 @@ exports.getCategories = functions.https.onRequest((req, res) => {
 		return res.send(data);
 	})
 	.catch((err) => {
-		return res.send(`Error occured while sending categories\n Error: ${err}`);
+		return res.send({
+			message: `Error occured while sending categories\n Error: ${err}`
+		});
 	})
 })
 
@@ -107,7 +115,9 @@ exports.getEventNames = functions.https.onRequest((req,res) => {
 			return res.send(data);
 		})
 		.catch((err) => {
-			return res.send(`Error occured while getting categories.\n Error :  ${err}`);
+			return res.send({
+				message: `Error occured while getting categories.\n Error :  ${err}`
+			});
 		})
 	}
 	else if(req.query.category == 'one')
