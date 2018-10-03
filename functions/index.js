@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const isAuthenticated = require('./middlewares/auth');
+const config = require('./config');
 
 admin.initializeApp();
 let database = admin.database();
@@ -14,7 +15,6 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 
 const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
-const key = 'abab';
 
 /*
 *   /googleLogin
@@ -60,7 +60,7 @@ app.get('/googleLogin', (req, response) => {
                         body: body
                     };
 
-                    const token = jwt.sign(data, key, {expiresIn: "12h"});
+                    const token = jwt.sign(data, config.key, {expiresIn: "12h"});
 
                     response.status(200).json({
                         success: true, token: token

@@ -1,12 +1,11 @@
 const jwt = require('jsonwebtoken');
-
-const key = 'abab';
+const config = require('../config');
 
 const isAuthenticated = (req, res, next) => {
     const token = req.headers.authorization;
 
     if (token) {
-        jwt.verify(token, key, (err, data) => {
+        jwt.verify(token, config.key, (err, data) => {
             if (err) {
                 res.status(401).json({
                     success: false, err: 'unauthenticated request'
