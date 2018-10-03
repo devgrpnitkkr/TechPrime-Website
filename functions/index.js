@@ -149,43 +149,56 @@ exports.signUp = functions.https.onRequest(app);
 //<--------Random Fact Generation---------->
 //Generates random fact about techspardha.
 exports.randomFact = functions.https.onRequest((request , response) => {
-  const numberOfLines = 8;
-  const randomIndex = Math.floor(Math.random() * numberOfLines);
-  database.ref('/facts/' + randomIndex).on('value',function(snapshot){
-    console.log(snapshot.val());
-    response.status(401).json({
-      message : snapshot.val()
-    });
-  });
-});
-
-
-//<------Returning the array of all the videos------>
-//Returns the array of videos containing title and url of a video.
-exports.getVideo = functions.https.onRequest((request , response) => {
-  let items = [];
-  database.ref('/videos').on('value', function(snapshot) {
-    snapshot.forEach(function(childSnapshot) {
-      items.push(childSnapshot.key,{
-        title : childSnapshot.val().title,
-        url : childSnapshot.val().url
+    const numberOfLines = 8;
+    const randomIndex = Math.floor(Math.random() * numberOfLines);
+    database.ref('/facts/' + randomIndex).on('value',function(snapshot){
+      console.log(snapshot.val());
+      response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+      response.status(401).json({
+        message : snapshot.val()
       });
     });
   });
-  response.status(401).json(items);
-}); 
-
-
-//<-----Adding query to database------->
-//only add newly asked query to the database.
-exports.addQuery = functions.https.onRequest((request,response)=>{
-  const query = request.query.text;
-  var newPostKey = admin.database().ref().child('queries').push().key;
-  var updates = {};
-  updates['/queries/' + newPostKey] = query;
-  database.ref().update(updates);
-  response.status(401).json({
-    message : "query successfully added"
+  
+  
+  //<------Returning the array of all the videos------>
+  //Returns the array of videos containing title and url of a video.
+  exports.getVideo = functions.https.onRequest((request , response) => {
+    let items = [];
+    database.ref('/videos').on('value', function(snapshot) {
+      snapshot.forEach(function(childSnapshot) {
+        items.push(childSnapshot.key,{
+          title : childSnapshot.val().title,
+          url : childSnapshot.val().url
+        });
+      });
+    });
+    response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+    response.status(401).json(items);
+  }); 
+  
+  
+  
+  // <-----Adding query to database------->
+  // only add newly asked query to the database, if query will be null then it will return the empty query message else query will be added to database. 
+  exports.addQuery = functions.https.onRequest((request,response)=>{
+    const query = request.query.text;
+    const email1=req.body.email1;
+    const email=email1.replace(/\./g, ',');
+    const email_child='queries/'+email;
+    if(query!==null)
+    {
+      database.ref().child(email_child).push(query);
+      response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+      response.status(401).json({
+        message : "query successfully added"
+      });
+    }
+    else
+    {
+      response.status(500).json({
+        message: "empty query"
+      })
+    }
   });
-});
-
+  
