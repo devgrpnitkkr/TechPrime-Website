@@ -25,12 +25,56 @@ app.use(bodyParser.urlencoded({extended:false}));
 
 
 // routes
-app.get('/events', isAuthenticated, getEventNames);
-app.get('/categories', isAuthenticated, getCategories);
-app.get('/events/description', isAuthenticated, getEventDescription);
-app.get('/events/timeline', isAuthenticated, getEventTimeline);
+app.get('/events', getEventNames);
+app.get('/categories', getCategories);
+app.get('/events/description', getEventDescription);
+app.get('/events/timeline', getEventTimeline);
 app.post('/events', isAuthenticated, addEvent);
+app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
+
+
+
+
+function getRegisteredEvents(req, res)
+{
+	let email = req.body.email;
+
+	db.child(users + "/" + email + registeredEvents).once('value')
+	.then((snapshot) => {
+
+		let database = snapshot.val();
+		let data = {"registeredEvents": []};
+
+		db.child(eventDescription).once('value')
+		.then((snap) => {
+	
+			let eventsDes = snap.val();
+
+			for(let category in database)
+			{
+				for(let event in category)
+				{
+					// event is single events registered by user in category = category
+					let userEvent = database.category.event;
+					let eventDetails = eventDes.category.event;
+					
+					data.registeredEvents.push(eventDetails);
+				}
+			}
+		})
+
+		data.success = true;
+		res.send(data);
+	})
+	.catch((err) => {
+
+		res.send({
+			success: false,
+			message: `Error while fetching user registered events`
+		})
+	})
+}
 
 
 // registeredEvents
@@ -39,7 +83,8 @@ app.put('/user/event', isAuthenticated, eventRegister);
 // 	programming: ["a", "b"]
 // }
 // register user for a events
-function eventRegister(request, response) {
+function eventRegister(request, response) 
+{
 
 	let eventName = request.query.event;
 	let eventCategory = request.query.eventCategory;
@@ -68,7 +113,7 @@ function eventRegister(request, response) {
 			}
 			else
 			{
-				if(registeredEvent.eventCategory.indexOf(eventName) != -1)
+				if(registeredEvent.eventCategory.indexOf(eventName) == -1)
 				{
 					// if category already exists
 					// push event to that category
@@ -116,7 +161,10 @@ function getEmail(body)
 // 	"programming" : ["a","b"]
 // }
 
-function getEventNames(req, res) {
+function getEventNames(req, res) 
+{
+
+	//optional - eventCategory
 
 	if(req.query.eventCategory == null) {
 
@@ -137,8 +185,10 @@ function getEventNames(req, res) {
 			}
 			data.success = true;
 			return res.send(data);
+		})
 	}
 	else {
+
 		let category = req.query.eventCategory;
 		let node = events + "/" + category;
 		return db.child(node).once('value')
@@ -151,12 +201,25 @@ function getEventNames(req, res) {
 					message : "No such category exist"
 				});
 			}
-			snapshot.success = true;
-			return res.send(snapshot);
+
+			let database = snapshot.val();
+			let data = {};
+			data.category = new Array();
+
+			for(let event in database)
+			{
+				data.category.push(event.name);
+			}
+
+			data.success = true;
+			return res.send(data);
 		})
 	}
 }
 
+// {
+// 	categories: ["a", "b"]
+// }
 // returns json object with array of categories
 function getCategories(req, res) {
 	return db.child(events).once('value')
@@ -169,10 +232,12 @@ function getCategories(req, res) {
 			data.categories.push(category);
 		}
 		data.message = "Categories received";
-		return res.send(data);
+		data.success = true;
+		return res.json(data);
 	})
 	.catch((err) => {
 		return res.send({
+			success: false,
 			message: `Error occured while sending categories\n Error: ${err}`
 		});
 	})
@@ -202,6 +267,7 @@ function addEvent(req, res) {
 		console.log(`Added ${eventData.eventName} to timeline succesfully`);
 	}).catch((err) => {
 		res.send({
+			success: false,
 			message: `Error occured while adding event to the timeline\nError : ${err}`
 		});
 	})
@@ -211,10 +277,12 @@ function addEvent(req, res) {
 	db.child(`${eventDescription}/${eventData.category}/${eventData.eventName}`).set(eventData)
 	.then((snapshot) => {
 		return res.send({
+			success: true,
 			message: `Added ${snapshot.val()} successfully`
 		});
 	}).catch((err) => {
 		return res.send({
+			success: false,
 			message: `Error occured when adding events to the description node\nError : ${err}`
 		});
 	}) 
@@ -223,9 +291,11 @@ function addEvent(req, res) {
 
 // returns events description for single event
 // or all the events of one category
-exports.getEventDescription = functions.https.onRequest((req,res) => {
-
+function getEventDescription(req, res) {
+	
+	//	compulsory
 	let categoryName = req.query.eventCategory;
+	// optional parameter
 	let eventName = req.query.eventName;
 
 	if(eventCategory == null)
@@ -273,8 +343,8 @@ exports.getEventDescription = functions.https.onRequest((req,res) => {
 		})
 		
 	}
-})
-
+	
+}
 // returns events startTime, endTime and name
 function getEventTimeline(req, res) {
 
