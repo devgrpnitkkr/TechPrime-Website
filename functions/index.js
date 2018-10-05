@@ -39,7 +39,9 @@ app.post('/events', isAuthenticated, addEvent);
 app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
 
-
+app.get('/facts',randomFact);
+app.get('/videos',video);
+app.post('/query',isAuthenticated,addQuery)
 
 
 function getRegisteredEvents(req, res)
@@ -551,6 +553,56 @@ function signUp(req, response) {
 
 }
 
+function randomFact(request,response) {
+    const numberOfLines = 8;
+    const randomIndex = Math.floor(Math.random() * numberOfLines);
+    database.ref('/facts/' + randomIndex).on('value',function(snapshot){
+      console.log(snapshot.val());
+      response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+      response.status(401).json({
+        message : snapshot.val()
+      });
+    });
+};
+
+
+//<------Returning the array of all the videos------>
+//Returns the array of videos containing title and url of a video.
+function video(request,response) {
+	let items = [];
+    database.ref('/videos').on('value', function(snapshot) {
+    	snapshot.forEach(function(childSnapshot) {
+        items.push(childSnapshot.key,{
+        	title : childSnapshot.val().title,
+        	url : childSnapshot.val().url
+        	});
+    	});
+    });
+    response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+    response.status(401).json(items);
+  } ;
+
+// <-----Adding query to database------->
+// only add newly asked query to the database, if query will be null then it will return the empty query message else query will be added to database. 
+function addQuery(request,response){
+    const query = request.query.text;
+    const email=request.body.email;
+    const email_child='queries/'+email;
+    if(query!==null)
+    {
+    	database.ref().child(email_child).push(query);
+    	response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+    	response.status(401).json({
+        message : "query successfully added"
+      	});
+    }
+    else
+    {
+      	response.status(500).json({
+        message: "empty query"
+      	})
+    }
+  };
 
 
 
