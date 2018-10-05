@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "techspardha-87928"
+    "default": "techspardha-87928",
+    "staging": "tech-69a77"
   }
 }

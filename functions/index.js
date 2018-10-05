@@ -28,6 +28,9 @@ app.use(bodyParser.urlencoded({extended:false}));
 
 
 // routes
+app.post('/googleLogin', googleLogin);
+app.put('/signUp', isAuthenticated, signUp);
+
 app.get('/events', getEventNames);
 app.get('/categories', getCategories);
 app.get('/events/description', getEventDescription);
@@ -36,22 +39,17 @@ app.post('/events', isAuthenticated, addEvent);
 app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
 
-app.post('/googleLogin', googleLogin);
-app.put('/signUp', signUp);
 
 
 
 function getRegisteredEvents(req, res)
 {
 	let email = req.body.email;
-	console.log(email);
 
 	db.child(users + "/" + email + "/" + registeredEvents).once('value')
 	.then((snapshot) => {
 
 		let database = snapshot.val();
-
-		console.log(database);
 
 		let data = {"registeredEvents": []};
 
@@ -62,12 +60,10 @@ function getRegisteredEvents(req, res)
 
 			for(let category in database)
 			{
-				console.log(category);
 				let arrLen = database[category].length;
-				console.log(database[category].length);
+				
 				for(let event = 0 ; event < arrLen ; event++)
 				{
-					console.log(event);
 					// event is single events registered by user in category = category
 					let userEvent = database[category][event];
 					let eventDetails = eventsDes[category][userEvent];
@@ -206,7 +202,8 @@ function getEventNames(req, res)
 				data[category] = new Array();
 				for(let event in database[category])
 				{
-					let eventName = database[category][event].name;
+					
+					let eventName = database[category][event].eventName;
 					data[category].push(eventName);
 				}
 			}
@@ -217,9 +214,9 @@ function getEventNames(req, res)
 	else {
 
 		let category = req.query.eventCategory;
-		console.log(category);
+		
 		let node = events + "/" + category;
-		console.log(node);
+		
 		return db.child(node).once('value')
 		.then((snapshot) => {
 
@@ -238,8 +235,7 @@ function getEventNames(req, res)
 
 			for(let event in database)
 			{
-				console.log(database[event]);
-				data[category].push(database[event].name);
+				data[category].push(database[event].eventName);
 			}
 
 			data.success = true;
@@ -286,7 +282,6 @@ function addEvent(req, res) {
 	// 	others: "string"
 	// }
 
-	console.log(eventData);
 
 	// adding event to timeline 
 	// name, startTime and endTime
@@ -530,9 +525,9 @@ function signUp(req, response) {
         });
     }
     else {
-        let email = req.body.email;
+		let email = req.body.email;
         let ref = database.ref('users/'+email);
-
+		
         ref.once('value', function (snapshot) {
             if (snapshot.val()) {
                 ref.update({

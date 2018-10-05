@@ -1,0 +1,40 @@
+[debug] [2018-10-05T19:43:09.407Z] ----------------------------------------------------------------------
+[debug] [2018-10-05T19:43:09.413Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\bin\firebase serve --only functions
+[debug] [2018-10-05T19:43:09.413Z] CLI Version:   3.16.0
+[debug] [2018-10-05T19:43:09.413Z] Platform:      win32
+[debug] [2018-10-05T19:43:09.414Z] Node Version:  v8.11.4
+[debug] [2018-10-05T19:43:09.415Z] Time:          Sat Oct 06 2018 01:13:09 GMT+0530 (India Standard Time)
+[debug] [2018-10-05T19:43:09.415Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-05T19:43:09.446Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-05T19:43:09.449Z] > authorizing via signed-in user
+[debug] [2018-10-05T19:43:09.454Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-10-05T19:43:09.455Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ { refresh_token: '1/_zqSZ6dHyH6D-ubmHE3A6MnzLTZzTW3058d7UTywXuk',
+  client_id: '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
+  client_secret: 'j9iVZfS8kkCEFUPaAeJV0sAi',
+  grant_type: 'refresh_token',
+  scope: 'email https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/cloudplatformprojects.readonly https://www.googleapis.com/auth/firebase openid' } 
+ Sat Oct 06 2018 01:13:09 GMT+0530 (India Standard Time)
+[debug] [2018-10-05T19:43:10.126Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-05T19:43:10.161Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/projects/tech-69a77  
+  
+ Sat Oct 06 2018 01:13:10 GMT+0530 (India Standard Time)
+[debug] [2018-10-05T19:43:12.276Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-05T19:43:12.279Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/database/tech-69a77/tokens  
+  
+ Sat Oct 06 2018 01:13:12 GMT+0530 (India Standard Time)
+[debug] [2018-10-05T19:43:14.221Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from 'C:\Users\user\Documents\WebD\Tech18_Website\TechPrime-Website'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-05T19:43:16.690Z] >>> HTTP REQUEST GET https://appengine.googleapis.com/v1/apps/tech-69a77  
+  
+ Sat Oct 06 2018 01:13:16 GMT+0530 (India Standard Time)
+[debug] [2018-10-05T19:43:16.692Z] >>> HTTP REQUEST GET https://apikeys.googleapis.com/v1/projects/tech-69a77/apiKeys  
+  
+ Sat Oct 06 2018 01:13:16 GMT+0530 (India Standard Time)
+[debug] [2018-10-05T19:43:19.128Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-05T19:43:19.259Z] <<< HTTP RESPONSE 200
+[info] +  functions: api: http://localhost:5000/tech-69a77/us-central1/api
