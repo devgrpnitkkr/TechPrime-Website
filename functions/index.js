@@ -15,7 +15,6 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 
 const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
-
 /*
 *   /googleLogin
 *   get:
@@ -31,8 +30,8 @@ const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
 *           400:
 *               description: error
  */
-app.get('/googleLogin', (req, response) => {
-    request(googleUrl + req.query.accessToken, {json: true}, (err, res, body) => {
+app.post('/googleLogin', (req, response) => {
+    request(googleUrl + req.body.accessToken, {json: true}, (err, res, body) => {
         let data;
         if (err) {
             return res.status(400).json({success: false, err: err});
@@ -46,15 +45,12 @@ app.get('/googleLogin', (req, response) => {
         let email1 = body.emails[0].value;
         let email = email1.replace(/\./g, ',');
         let email_child = "users/" + email;
-        let ref = database.ref();
+        let ref = database.ref().child(email_child);
 
         ref.once('value', (snapshot) => {
-            if (snapshot.hasChild(email_child)) {
-                let reff = database.ref(email_child);
-
-                reff.once('value', (snap) => {
+            if (snapshot.val()) {
                     data = {
-                        onBoard: snap.val().onBoard,
+                        onBoard: snapshot.val().onBoard,
                         authenticatedRequest: true,
                         isRegistered: true,
                         body: body
@@ -65,7 +61,6 @@ app.get('/googleLogin', (req, response) => {
                     response.status(200).json({
                         success: true, token: token
                     });
-                });
             }
             else {
                 database.ref(email_child).set({
@@ -79,8 +74,10 @@ app.get('/googleLogin', (req, response) => {
                     isRegistered: false,
                     body: body
                 };
+
+                const token = jwt.sign(data, config.key, {expiresIn: "12h"});
                 response.status(200).json({
-                    success: true, data: data
+                    success: true, token: token
                 });
             }
         });
@@ -88,14 +85,14 @@ app.get('/googleLogin', (req, response) => {
 });
 
 /*
-*   /
-*   post:
+*   /signUp
+*   put:
 *      body:
 *           phone: Number
 *           college: string
 *           year: Number
 *      description:
-*           onboarding
+*           onboarding data
 *      responses:
 *           200:
 *               description: data updated
@@ -103,22 +100,22 @@ app.get('/googleLogin', (req, response) => {
 *                   status: boolean
 *           400:
 *               description: incomplete parameters
+*           403:
+*               description: user does not exist
  */
-app.post('/', isAuthenticated, (req, response) => {
+app.put('/signUp', isAuthenticated, (req, response) => {
     if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
         return response.status(400).json({
             success: false, err: 'please pass valid/complete url parameters'
         });
     }
     else {
-        let email1 = req.body.email1;
-        let email = email1.replace(/\./g, ',');
-        let ref = database.ref('users/');
-        let email_child = "users/" + email;
+        let email = req.body.email;
+        let ref = database.ref('users/'+email);
 
         ref.once('value', function (snapshot) {
-            if (snapshot.hasChild(email)) {
-                database.ref(email_child).update({
+            if (snapshot.val()) {
+                ref.update({
                     onBoard: true,
                     phone: req.body.phone,
                     college: req.body.college,
@@ -128,8 +125,14 @@ app.post('/', isAuthenticated, (req, response) => {
                     success: true
                 });
             }
+            else {
+                response.status(403).json({
+                    success: false,
+                    err: 'user does not exist'
+                })
+            }
         });
     }
 });
 
-exports.signUp = functions.https.onRequest(app);
+exports.api = functions.https.onRequest(app);
