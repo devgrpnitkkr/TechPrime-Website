@@ -36,17 +36,23 @@ app.post('/events', isAuthenticated, addEvent);
 app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
 
+app.post('/googleLogin', googleLogin);
+app.put('/signUp', signUp);
 
 
 
 function getRegisteredEvents(req, res)
 {
 	let email = req.body.email;
+	console.log(email);
 
-	db.child(users + "/" + email + registeredEvents).once('value')
+	db.child(users + "/" + email + "/" + registeredEvents).once('value')
 	.then((snapshot) => {
 
 		let database = snapshot.val();
+
+		console.log(database);
+
 		let data = {"registeredEvents": []};
 
 		db.child(eventDescription).once('value')
@@ -56,19 +62,30 @@ function getRegisteredEvents(req, res)
 
 			for(let category in database)
 			{
-				for(let event in category)
+				console.log(category);
+				let arrLen = database[category].length;
+				console.log(database[category].length);
+				for(let event = 0 ; event < arrLen ; event++)
 				{
+					console.log(event);
 					// event is single events registered by user in category = category
-					let userEvent = database.category.event;
-					let eventDetails = eventDes.category.event;
-					
+					let userEvent = database[category][event];
+					let eventDetails = eventsDes[category][userEvent];
 					data.registeredEvents.push(eventDetails);
 				}
 			}
+
+			data.success = true;
+			res.send(data);
+		})
+		.catch((err) => {
+			res.send({
+				success: false,
+				message: `coould not fetch event description`
+			})
 		})
 
-		data.success = true;
-		res.send(data);
+		
 	})
 	.catch((err) => {
 
@@ -89,14 +106,11 @@ function getRegisteredEvents(req, res)
 function eventRegister(request, response) 
 {
 
-	let eventName = request.query.event;
+	let eventName = request.query.eventName;
 	let eventCategory = request.query.eventCategory;
 	let email = request.body.email;
 
-
-	let node = userRegistrations + "/" + eventName;
-
-		// get previsouly registred events
+		// get previsouly registered events
 		db.child(users + "/" + email + "/" + registeredEvents).once('value')
 		.then((snapshot) => {
 
@@ -107,20 +121,29 @@ function eventRegister(request, response)
 			}
 
 			// if not registred any events in that category
-			if(registeredEvent.eventCategory == 'undefined')
+			if(registeredEvent[eventCategory] == undefined)
 			{
 				// create array fro category
-				registeredEvent.eventCategory = new Array();
+				registeredEvent[eventCategory] = new Array();
 				// push event into that category
-				registeredEvent.eventCategory.push(eventName);
+				registeredEvent[eventCategory].push(eventName);
 			}
 			else
 			{
-				if(registeredEvent.eventCategory.indexOf(eventName) == -1)
+				// if category already exists
+				// push event to that category
+
+				// if event already registered
+				if(registeredEvent[eventCategory].indexOf(eventName) == -1)
 				{
-					// if category already exists
-					// push event to that category
-					registeredEvent.eventCategory.push(eventName);
+					registeredEvent[eventCategory].push(eventName);
+				}
+				else
+				{
+					return response.send({
+						success: false,
+						message: `already registered for ${eventName}`
+					})
 				}
 			}
 
@@ -136,7 +159,7 @@ function eventRegister(request, response)
 			.catch((err) => {
 				console.log(err);
 				response.json({
-					message: "Could not Register!",
+					message: "could not register!",
 					error: err
 				});
 			})
@@ -158,6 +181,7 @@ function getEmail(body)
 	return formattedEmail;
 }
 
+
 //return eventName
 // {
 // 	"managerial": ["a", "b"],
@@ -174,16 +198,16 @@ function getEventNames(req, res)
 		return db.child(events).once('value')
 		.then((snapshot) => {
 
-			var database=snapshot.val();
+			var database = snapshot.val();
 
 			var data = {};
 			for(var category in database)
 			{
-				data.category = new Array();
-				for(let event in database.category)
+				data[category] = new Array();
+				for(let event in database[category])
 				{
-					let eventName = database.category.event.name;
-					data.category.push(eventName);
+					let eventName = database[category][event].name;
+					data[category].push(eventName);
 				}
 			}
 			data.success = true;
@@ -193,25 +217,29 @@ function getEventNames(req, res)
 	else {
 
 		let category = req.query.eventCategory;
+		console.log(category);
 		let node = events + "/" + category;
+		console.log(node);
 		return db.child(node).once('value')
 		.then((snapshot) => {
 
-			if(snapshot == null)
+			console.log(snapshot.val());
+			let database = snapshot.val();
+			if(database == null)
 			{
 				return res.send({
 					success: false,
-					message : "No such category exist"
+					message : `${category} category doesn't exist`
 				});
 			}
 
-			let database = snapshot.val();
 			let data = {};
-			data.category = new Array();
+			data[category] = new Array();
 
 			for(let event in database)
 			{
-				data.category.push(event.name);
+				console.log(database[event]);
+				data[category].push(database[event].name);
 			}
 
 			data.success = true;
@@ -258,11 +286,13 @@ function addEvent(req, res) {
 	// 	others: "string"
 	// }
 
+	console.log(eventData);
+
 	// adding event to timeline 
 	// name, startTime and endTime
 	db.child(`${events}/${eventData.category}/${eventData.eventName}`).set({
 
-		name : eventData.eventName,
+		eventName : eventData.eventName,
 		startTime : eventData.startTime,
 		endTime : eventData.endTime
 	})
@@ -277,11 +307,20 @@ function addEvent(req, res) {
 
 	// adding event with full description to the node 
 	// with all the json data received
-	db.child(`${eventDescription}/${eventData.category}/${eventData.eventName}`).set(eventData)
+
+
+	
+	let eventCategory =  eventData.category;
+	delete eventData.category;
+
+	db.child(`${eventDescription}/${eventCategory}/${eventData.eventName}`).set(eventData)
 	.then((snapshot) => {
+
+		console.log(`Added ${eventData.eventName} successfully`);
+
 		return res.send({
 			success: true,
-			message: `Added ${snapshot.val()} successfully`
+			message: `Added ${eventData.eventName} successfully`
 		});
 	}).catch((err) => {
 		return res.send({
@@ -301,11 +340,11 @@ function getEventDescription(req, res) {
 	// optional parameter
 	let eventName = req.query.eventName;
 
-	if(eventCategory == null)
+	if(categoryName == null)
 	{
 		return res.send({
 			success: false,
-			message: `Invalid Paramenters.\nUsage: eventCategory=category&[eventName=name]`
+			message: `Invalid Paramenters. \n Usage: eventCategory=category&[eventName=name]`
 		});
 	}
 
@@ -313,11 +352,12 @@ function getEventDescription(req, res) {
 	{
 		db.child(`${eventDescription}/${categoryName}`).once('value')
 		.then((snapshot) => {
-			if(snapshot == null) {
+
+			if(snapshot.val() == null) {
 
 				return res.send({
 					success: false,
-					message: `${eventCategory} does't exist.`
+					message: `${categoryName} does't exist.`
 				});
 			}
 
@@ -327,12 +367,15 @@ function getEventDescription(req, res) {
 	}
 	else
 	{
-		db.child(`${eventDescription}/${eventCategory}/${eventName}`).once('value')
+		db.child(`${eventDescription}/${categoryName}/${eventName}`).once('value')
 		.then((snapshot) => {
-			if(snapshot == null) {
+
+			console.log(snapshot.val());
+
+			if(snapshot.val() == null) {
 				return res.send({
 					success: false,
-					message: `${eventName} in ${eventCategory} doesn't exist.`
+					message: `${eventName} in ${categoryName} doesn't exist.`
 				});
 			}
 			snapshot.success = true;
@@ -378,12 +421,6 @@ function getEventTimeline(req, res) {
 
 
 
-
-
-
-
-
-
 /*
 *   /googleLogin
 *   get:
@@ -399,15 +436,18 @@ function getEventTimeline(req, res) {
 *           400:
 *               description: error
  */
-app.post('/googleLogin', (req, response) => {
-    request(googleUrl + req.body.accessToken, {json: true}, (err, res, body) => {
+function googleLogin(req, response) {
+
+	request(googleUrl + req.body.accessToken, {json: true}, (err, res, body) => {
         let data;
         if (err) {
             return res.status(400).json({success: false, err: err});
         }
+
         if (body.error != null) {
             return response.json({
-                success: false, err: 'unauthenticated request'
+                success: false, 
+                error: 'unauthenticated request'
             });
         }
 
@@ -451,7 +491,17 @@ app.post('/googleLogin', (req, response) => {
             }
         });
     });
-});
+
+}
+
+
+
+
+
+
+
+
+
 
 /*
 *   /signUp
@@ -472,8 +522,9 @@ app.post('/googleLogin', (req, response) => {
 *           403:
 *               description: user does not exist
  */
-app.put('/signUp', isAuthenticated, (req, response) => {
-    if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
+function signUp(req, response) {
+
+	if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
         return response.status(400).json({
             success: false, err: 'please pass valid/complete url parameters'
         });
@@ -502,21 +553,8 @@ app.put('/signUp', isAuthenticated, (req, response) => {
             }
         });
     }
-});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 
