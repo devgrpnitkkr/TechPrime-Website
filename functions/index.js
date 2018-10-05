@@ -171,13 +171,7 @@ function eventRegister(request, response)
 		})
 }
 
-// change "." to "," in user email
-function getEmail(body)
-{
-	let email = body.emails[0].value;
-	let formattedEmail = email.replace(/\./g,',');
-	return formattedEmail;
-}
+
 
 
 //return eventName
@@ -569,17 +563,18 @@ function randomFact(request,response) {
 //<------Returning the array of all the videos------>
 //Returns the array of videos containing title and url of a video.
 function video(request,response) {
-	let items = [];
-    database.ref('/videos').on('value', function(snapshot) {
-    	snapshot.forEach(function(childSnapshot) {
-        items.push(childSnapshot.key,{
-        	title : childSnapshot.val().title,
-        	url : childSnapshot.val().url
-        	});
-    	});
-    });
-    response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-    response.status(401).json(items);
+	
+	return database.ref('/videos').once('value')
+	.then((snapshot) => {
+		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+    	return response.status(401).send(snapshot.val());
+	})
+	.catch((err) => {
+		return response.send({
+			success: false,
+			message: `Error occured while fetching videos\n Error : ${err}`
+		})
+	})
   } ;
 
 // <-----Adding query to database------->
