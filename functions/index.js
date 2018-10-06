@@ -43,6 +43,18 @@ app.get('/facts',randomFact);
 app.get('/videos',video);
 app.post('/query',isAuthenticated,addQuery)
 
+app.get('/timestamp', getTimestamp);
+
+
+//send time stamp of the server
+function getTimestamp(req, res) {
+
+	res.setHeader('Content-Type', 'application/json');
+	res.send(JSON.stringify({ 
+		timestamp: Date.now() 
+	}));
+}
+
 
 function getRegisteredEvents(req, res)
 {
