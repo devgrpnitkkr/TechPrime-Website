@@ -1,0 +1,58 @@
+[debug] [2018-10-06T15:53:42.908Z] ----------------------------------------------------------------------
+[debug] [2018-10-06T15:53:42.910Z] Command:       /usr/bin/node /usr/bin/firebase serve
+[debug] [2018-10-06T15:53:42.910Z] CLI Version:   5.0.1
+[debug] [2018-10-06T15:53:42.910Z] Platform:      linux
+[debug] [2018-10-06T15:53:42.910Z] Node Version:  v8.12.0
+[debug] [2018-10-06T15:53:42.910Z] Time:          Sat Oct 06 2018 21:23:42 GMT+0530 (IST)
+[debug] [2018-10-06T15:53:42.910Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-06T15:53:42.917Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-06T15:53:42.917Z] > authorizing via signed-in user
+[debug] [2018-10-06T15:53:42.917Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
+[debug] [2018-10-06T15:53:42.918Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-10-06T15:53:42.918Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2018-10-06T15:53:43.438Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-06T15:53:43.450Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-06T15:53:45.337Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-06T15:53:45.340Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-06T15:53:47.218Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/media/ankurcharan/EA84A99384A96335/Intel Inside/Web Dev/Techspardha/merge'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-06T15:53:47.503Z] Fetching environment
+[debug] [2018-10-06T15:53:47.504Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-06T15:53:47.504Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805/clients/_:getWebAppConfig  
+ 
+[debug] [2018-10-06T15:53:48.119Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-06T15:53:48.120Z] Starting @google-cloud/functions-emulator
+[debug] [2018-10-06T15:53:48.224Z] <<< HTTP RESPONSE 200
+[info] i  hosting: Serving hosting files from: public
+[info] ✔  hosting: Local server: http://localhost:5000
+[debug] [2018-10-06T15:53:49.173Z] Parsing function triggers
+[info] ✔  functions: api: http://localhost:5001/techspardha-87928/us-central1/api
+[debug] [2018-10-06T16:09:53.176Z] ----------------------------------------------------------------------
+[debug] [2018-10-06T16:09:53.178Z] Command:       /usr/bin/node /usr/bin/firebase deploy --only functions
+[debug] [2018-10-06T16:09:53.178Z] CLI Version:   5.0.1
+[debug] [2018-10-06T16:09:53.178Z] Platform:      linux
+[debug] [2018-10-06T16:09:53.178Z] Node Version:  v8.12.0
+[debug] [2018-10-06T16:09:53.178Z] Time:          Sat Oct 06 2018 21:39:53 GMT+0530 (IST)
+[debug] [2018-10-06T16:09:53.178Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-06T16:09:53.189Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-06T16:09:53.189Z] > authorizing via signed-in user
+[debug] [2018-10-06T16:09:53.189Z] [iam] checking project techspardha-87928 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2018-10-06T16:09:53.190Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-06T16:09:55.949Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Deploying to 'techspardha-87928'...
+[info] 
+[info] i  deploying functions
+[info] Running command: npm --prefix "$RESOURCE_DIR" run lint
+[error] 
+[error] Error: functions predeploy error: Command terminated with non-zero exit code1

@@ -45,31 +45,32 @@ app.post('/query',isAuthenticated,addQuery)
 
 app.get('/timestamp', getTimestamp);
 
+app.use('/', (req, res) => {
 
-//send time stamp of the server
-function getTimestamp(req, res) {
+	let data = {};
+	data.success = true,
+	data.message = "connected to server",
+	data.anotherMessage = "C'mon we created so many routes, use them!!"
 
-	res.setHeader('Content-Type', 'application/json');
-	res.send(JSON.stringify({ 
-		timestamp: Date.now() 
-	}));
-}
+	res.json(data);
+})
 
 
-function getRegisteredEvents(req, res)
-{
-	let email = req.body.email;
 
-	db.child(users + "/" + email + "/" + registeredEvents).once('value')
-	.then((snapshot) => {
 
-		let database = snapshot.val();
 
-		let data = {"registeredEvents": []};
+
+
+
+
+function matchEventDescription(database, data) {
+
+
+	return new Promise(function(resolve, reject) {
 
 		db.child(eventDescription).once('value')
 		.then((snap) => {
-	
+
 			let eventsDes = snap.val();
 
 			for(let category in database)
@@ -84,20 +85,50 @@ function getRegisteredEvents(req, res)
 					data.registeredEvents.push(eventDetails);
 				}
 			}
-
 			data.success = true;
-			res.send(data);
+			console.log(data);
+			return resolve(data);
+
 		})
 		.catch((err) => {
-			res.send({
+
+			console.log("error: ", err);		// have to add
+												// deploy shows error - error needs to be handled
+			data = {
 				success: false,
 				message: `coould not fetch event description`
-			})
+			};
+
+			return reject(data);
 		})
 
-		
 	})
-	.catch((err) => {
+}
+
+
+function getRegisteredEvents(req, res)
+{
+	let email = req.body.email;
+	console.log(email);
+
+	db.child(users + "/" + email + "/" + registeredEvents).once('value')
+	.then((snapshot) => {
+
+		let database = snapshot.val();
+		let data = {"registeredEvents": []};
+
+		console.log(database);
+
+		return matchEventDescription(database, data)
+		.then((data) => {
+			console.log(data);
+			return res.json(data);
+		})
+		.catch((errData) => {
+			return res.json(errData);
+		})
+	})
+	.catch(() => {
 
 		res.send({
 			success: false,
@@ -105,6 +136,41 @@ function getRegisteredEvents(req, res)
 		})
 	})
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//send time stamp of the server
+function getTimestamp(req, res) {
+
+	res.setHeader('Content-Type', 'application/json');
+	res.send(JSON.stringify({ 
+		timestamp: Date.now() 
+	}));
+}
+
+
+
+
+
+
+
+
+
 
 
 // registeredEvents
@@ -120,18 +186,35 @@ function eventRegister(request, response)
 	let eventCategory = request.query.eventCategory;
 	let email = request.body.email;
 
+	let value;
+	if(eventName === undefined || eventCategory === undefined) {
+
+		let value = true;
+
+		response.send({
+			success: false,
+			message: `Invalid Parameters.\n Usage: eventName=event&eventCategory=category`
+		})
+	}
+	else
+	{
+		value = false;
+	}
+
+	if(value === false)
+	{
 		// get previsouly registered events
 		db.child(users + "/" + email + "/" + registeredEvents).once('value')
 		.then((snapshot) => {
 
 			let registeredEvent = snapshot.val();
-			if(registeredEvent == 'undefined' || registeredEvent == null)
+			if(registeredEvent === undefined || registeredEvent === null)
 			{
 				registeredEvent = {};
 			}
 
 			// if not registred any events in that category
-			if(registeredEvent[eventCategory] == undefined)
+			if(registeredEvent[eventCategory] === undefined)
 			{
 				// create array fro category
 				registeredEvent[eventCategory] = new Array();
@@ -144,7 +227,7 @@ function eventRegister(request, response)
 				// push event to that category
 
 				// if event already registered
-				if(registeredEvent[eventCategory].indexOf(eventName) == -1)
+				if(registeredEvent[eventCategory].indexOf(eventName) === -1)
 				{
 					registeredEvent[eventCategory].push(eventName);
 				}
@@ -158,29 +241,32 @@ function eventRegister(request, response)
 			}
 
 			// update user registered events
-			db.child(users + "/" + email).update({
+			return db.child(users + "/" + email).update({
 				"registeredEvents": registeredEvent
 			})
 			.then(() => {
-				response.json({
+				return response.json({
 					status: `Successfully registered for ${eventName}`
 				});
 			})
-			.catch((err) => {
-				console.log(err);
-				response.json({
+			.catch(() => {
+				return response.json({
 					message: "could not register!",
 					error: err
 				});
 			})
 		})
-		.catch((err) => {
-			console.log(err);
-			response.json({
+		.catch(() => {
+
+			return response.json({
 				message: "could not fetch user registered events",
 				error: err
 			});
 		})
+	}
+	
+
+	
 }
 
 
@@ -197,7 +283,7 @@ function getEventNames(req, res)
 
 	//optional - eventCategory
 
-	if(req.query.eventCategory == null) {
+	if(req.query.eventCategory === undefined) {
 
 		return db.child(events).once('value')
 		.then((snapshot) => {
@@ -230,7 +316,7 @@ function getEventNames(req, res)
 
 			console.log(snapshot.val());
 			let database = snapshot.val();
-			if(database == null)
+			if(database === null)
 			{
 				return res.send({
 					success: false,
@@ -290,6 +376,13 @@ function addEvent(req, res) {
 	// 	others: "string"
 	// }
 
+	if(eventData === undefined) {
+
+		return res.json({
+			success: false,
+			message: `Send event data as json data in $eventData`
+		})
+	}
 
 	// adding event to timeline 
 	// name, startTime and endTime
@@ -300,9 +393,9 @@ function addEvent(req, res) {
 		endTime : eventData.endTime
 	})
 	.then((snapshot) => {
-		console.log(`Added ${eventData.eventName} to timeline succesfully`);
+		return console.log(`Added ${eventData.eventName} to timeline succesfully`);
 	}).catch((err) => {
-		res.send({
+		return res.send({
 			success: false,
 			message: `Error occured while adding event to the timeline\nError : ${err}`
 		});
@@ -343,7 +436,7 @@ function getEventDescription(req, res) {
 	// optional parameter
 	let eventName = req.query.eventName;
 
-	if(categoryName == null)
+	if(categoryName === undefined)
 	{
 		return res.send({
 			success: false,
@@ -351,12 +444,12 @@ function getEventDescription(req, res) {
 		});
 	}
 
-	if(eventName == null)
+	if(eventName === undefined)
 	{
 		db.child(`${eventDescription}/${categoryName}`).once('value')
 		.then((snapshot) => {
 
-			if(snapshot.val() == null) {
+			if(snapshot.val() === null) {
 
 				return res.send({
 					success: false,
@@ -367,6 +460,12 @@ function getEventDescription(req, res) {
 			snapshot.success = true;
 			return res.send(snapshot.val());
 		})
+		.catch(() => {
+			return res.json({
+				success: false,
+				message: `could not fetch description for category ${categoryName}`
+			})
+		})
 	}
 	else
 	{
@@ -375,7 +474,7 @@ function getEventDescription(req, res) {
 
 			console.log(snapshot.val());
 
-			if(snapshot.val() == null) {
+			if(snapshot.val() === null) {
 				return res.send({
 					success: false,
 					message: `${eventName} in ${categoryName} doesn't exist.`
@@ -438,62 +537,63 @@ function getEventTimeline(req, res) {
 *                   token: string
 *           400:
 *               description: error
- */
+*/
 function googleLogin(req, response) {
 
 	request(googleUrl + req.body.accessToken, {json: true}, (err, res, body) => {
-        let data;
-        if (err) {
-            return res.status(400).json({success: false, err: err});
-        }
+		let data;
+		if (err) {
+			return res.status(400).json({success: false, err: err});
+		}
 
-        if (body.error != null) {
-            return response.json({
-                success: false, 
-                error: 'unauthenticated request'
-            });
-        }
+		if (body.error !== undefined) {
+			return response.json({
+				message: "body ni aayi",
+				success: false, 
+				error: 'unauthenticated request'
+			});
+		}
 
-        let email1 = body.emails[0].value;
-        let email = email1.replace(/\./g, ',');
-        let email_child = "users/" + email;
-        let ref = database.ref().child(email_child);
+		let email1 = body.emails[0].value;
+		let email = email1.replace(/\./g, ',');
+		let email_child = "users/" + email;
+		let ref = database.ref().child(email_child);
 
-        ref.once('value', (snapshot) => {
-            if (snapshot.val()) {
-                    data = {
-                        onBoard: snapshot.val().onBoard,
-                        authenticatedRequest: true,
-                        isRegistered: true,
-                        body: body
-                    };
+		ref.once('value', (snapshot) => {
+			if (snapshot.val()) {
+				data = {
+					onBoard: snapshot.val().onBoard,
+					authenticatedRequest: true,
+					isRegistered: true,
+					body: body
+				};
 
-                    const token = jwt.sign(data, config.key, {expiresIn: "12h"});
+				const token = jwt.sign(data, config.key, {expiresIn: "12h"});
 
-                    response.status(200).json({
-                        success: true, token: token
-                    });
-            }
-            else {
-                database.ref(email_child).set({
-                    onBoard: false,
-                    email: body.emails[0].value,
-                    name: body.name.givenName + " " + body.name.familyName,
-                });
-                data = {
-                    onBoard: false,
-                    authenticatedRequest: true,
-                    isRegistered: false,
-                    body: body
-                };
+				response.status(200).json({
+					success: true, token: token
+				});
+			}
+			else {
+				database.ref(email_child).set({
+					onBoard: false,
+					email: body.emails[0].value,
+					name: body.name.givenName + " " + body.name.familyName,
+				});
+				data = {
+					onBoard: false,
+					authenticatedRequest: true,
+					isRegistered: false,
+					body: body
+				};
 
-                const token = jwt.sign(data, config.key, {expiresIn: "12h"});
-                response.status(200).json({
-                    success: true, token: token
-                });
-            }
-        });
-    });
+				const token = jwt.sign(data, config.key, {expiresIn: "12h"});
+				response.status(200).json({
+					success: true, token: token
+				});
+			}
+		});
+	});
 
 }
 
@@ -524,52 +624,55 @@ function googleLogin(req, response) {
 *               description: incomplete parameters
 *           403:
 *               description: user does not exist
- */
+*/
 function signUp(req, response) {
 
 	if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
-        return response.status(400).json({
-            success: false, err: 'please pass valid/complete url parameters'
-        });
-    }
-    else {
+		return response.status(400).json({
+			success: false, err: 'please pass valid/complete url parameters'
+		});
+	}
+	else {
 		let email = req.body.email;
-        let ref = database.ref('users/'+email);
+		let ref = database.ref('users/'+email);
 		
-        ref.once('value', function (snapshot) {
-            if (snapshot.val()) {
-                ref.update({
-                    onBoard: true,
-                    phone: req.body.phone,
-                    college: req.body.college,
-                    year: req.body.year,
-                });
-                response.status(200).json({
-                    success: true
-                });
-            }
-            else {
-                response.status(403).json({
-                    success: false,
-                    err: 'user does not exist'
-                })
-            }
-        });
-    }
+		ref.once('value', function (snapshot) {
+			if (snapshot.val()) {
+				ref.update({
+					onBoard: true,
+					phone: req.body.phone,
+					college: req.body.college,
+					year: req.body.year,
+				});
+				response.status(200).json({
+					success: true,
+					message: "user onBoard"
+				});
+			}
+			else {
+				response.status(403).json({
+					success: false,
+					err: 'user does not exist'
+				})
+			}
+		});
+	}
 
 }
 
+
+// returns one new random fact everytime
 function randomFact(request,response) {
-    const numberOfLines = 8;
-    const randomIndex = Math.floor(Math.random() * numberOfLines);
-    database.ref('/facts/' + randomIndex).on('value',function(snapshot){
-      console.log(snapshot.val());
-      response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-      response.status(401).json({
-        message : snapshot.val()
-      });
-    });
-};
+	const numberOfLines = 8;
+	const randomIndex = Math.floor(Math.random() * numberOfLines);
+	database.ref('/facts/' + randomIndex).on('value',function(snapshot){
+		console.log(snapshot.val());
+		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+		response.status(401).json({
+			message : snapshot.val()
+		});
+	});
+}
 
 
 //<------Returning the array of all the videos------>
@@ -579,7 +682,7 @@ function video(request,response) {
 	return database.ref('/videos').once('value')
 	.then((snapshot) => {
 		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-    	return response.status(401).send(snapshot.val());
+		return response.status(401).send(snapshot.val());
 	})
 	.catch((err) => {
 		return response.send({
@@ -587,30 +690,32 @@ function video(request,response) {
 			message: `Error occured while fetching videos\n Error : ${err}`
 		})
 	})
-  } ;
+}
 
 // <-----Adding query to database------->
 // only add newly asked query to the database, if query will be null then it will return the empty query message else query will be added to database. 
 function addQuery(request,response){
-    const query = request.query.text;
-    const email=request.body.email;
-    const email_child='queries/'+email;
-    if(query!==null)
-    {
-    	database.ref().child(email_child).push(query);
-    	response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-    	response.status(401).json({
-        message : "query successfully added"
-      	});
-    }
-    else
-    {
-      	response.status(500).json({
-        message: "empty query"
-      	})
-    }
-  };
+	const query = request.query.text;
+	const email=request.body.email;
 
+	console.log(email);
+	console.log(query);
 
+	const email_child='queries/'+email;
+	if(query !== undefined)
+	{
+		database.ref().child(email_child).push(query);
+		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+		response.status(401).json({
+			message : "query successfully added"
+		});
+	}
+	else
+	{
+		response.status(500).json({
+			message: "empty query"
+		})
+	}
+}
 
 exports.api = functions.https.onRequest(app);

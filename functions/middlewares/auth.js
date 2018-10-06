@@ -7,12 +7,14 @@ const isAuthenticated = (req, res, next) => {
     if (token) {
         jwt.verify(token, config.key, (err, data) => {
             if (err) {
+
                 res.status(401).json({
                     success: false, err: 'unauthenticated request'
                 });
             }
             else {
-                if (data.error != null) {
+                if (data.error !== undefined) {
+
                     return res.status(401).json({
                         success: false, err: 'unauthenticated request'
                     });
@@ -25,7 +27,7 @@ const isAuthenticated = (req, res, next) => {
                     req.body.email = email;
                     req.body.name = name;
 
-                    next();
+                    return next();
                 }
             }
         });
