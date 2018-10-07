@@ -28,8 +28,8 @@ app.use(bodyParser.urlencoded({extended:false}));
 
 
 // routes
-app.post('/googleLogin', googleLogin);
-app.put('/signUp', isAuthenticated, signUp);
+app.post('/login', googleLogin);
+app.put('/user', isAuthenticated, signUp);
 
 app.get('/events', getEventNames);
 app.get('/categories', getCategories);
@@ -76,7 +76,7 @@ function matchEventDescription(database, data) {
 			for(let category in database)
 			{
 				let arrLen = database[category].length;
-				
+
 				for(let event = 0 ; event < arrLen ; event++)
 				{
 					// event is single events registered by user in category = category
@@ -158,8 +158,8 @@ function getRegisteredEvents(req, res)
 function getTimestamp(req, res) {
 
 	res.setHeader('Content-Type', 'application/json');
-	res.send(JSON.stringify({ 
-		timestamp: Date.now() 
+	res.send(JSON.stringify({
+		timestamp: Date.now()
 	}));
 }
 
@@ -179,7 +179,7 @@ function getTimestamp(req, res) {
 // 	programming: ["a", "b"]
 // }
 // register user for a events
-function eventRegister(request, response) 
+function eventRegister(request, response)
 {
 
 	let eventName = request.query.eventName;
@@ -264,9 +264,9 @@ function eventRegister(request, response)
 			});
 		})
 	}
-	
 
-	
+
+
 }
 
 
@@ -278,7 +278,7 @@ function eventRegister(request, response)
 // 	"programming" : ["a","b"]
 // }
 
-function getEventNames(req, res) 
+function getEventNames(req, res)
 {
 
 	//optional - eventCategory
@@ -296,7 +296,7 @@ function getEventNames(req, res)
 				data[category] = new Array();
 				for(let event in database[category])
 				{
-					
+
 					let eventName = database[category][event].eventName;
 					data[category].push(eventName);
 				}
@@ -308,9 +308,9 @@ function getEventNames(req, res)
 	else {
 
 		let category = req.query.eventCategory;
-		
+
 		let node = events + "/" + category;
-		
+
 		return db.child(node).once('value')
 		.then((snapshot) => {
 
@@ -384,7 +384,7 @@ function addEvent(req, res) {
 		})
 	}
 
-	// adding event to timeline 
+	// adding event to timeline
 	// name, startTime and endTime
 	db.child(`${events}/${eventData.category}/${eventData.eventName}`).set({
 
@@ -401,11 +401,11 @@ function addEvent(req, res) {
 		});
 	})
 
-	// adding event with full description to the node 
+	// adding event with full description to the node
 	// with all the json data received
 
 
-	
+
 	let eventCategory =  eventData.category;
 	delete eventData.category;
 
@@ -423,14 +423,14 @@ function addEvent(req, res) {
 			success: false,
 			message: `Error occured when adding events to the description node\nError : ${err}`
 		});
-	}) 
+	})
 
 }
 
 // returns events description for single event
 // or all the events of one category
 function getEventDescription(req, res) {
-	
+
 	//	compulsory
 	let categoryName = req.query.eventCategory;
 	// optional parameter
@@ -489,9 +489,9 @@ function getEventDescription(req, res) {
 				message: `Error in getting events details.\n Error: ${err}`
 			});
 		})
-		
+
 	}
-	
+
 }
 // returns events startTime, endTime and name
 function getEventTimeline(req, res) {
@@ -506,7 +506,7 @@ function getEventTimeline(req, res) {
 			message: `Error occured while getting events timeline\n Error : ${err}`
 		})
 	})
-	
+
 }
 
 
@@ -547,9 +547,9 @@ function googleLogin(req, response) {
 		}
 
 		if (body.error !== undefined) {
-			return response.json({
-				message: "body ni aayi",
-				success: false, 
+			return response.status(401).json({
+				message: "empty/invalid body received",
+				success: false,
 				error: 'unauthenticated request'
 			});
 		}
@@ -561,16 +561,17 @@ function googleLogin(req, response) {
 
 		ref.once('value', (snapshot) => {
 			if (snapshot.val()) {
-				data = {
+			/*	data = {
 					onBoard: snapshot.val().onBoard,
 					authenticatedRequest: true,
 					isRegistered: true,
 					body: body
-				};
+				};*/
 
-				const token = jwt.sign(data, config.key, {expiresIn: "12h"});
+				const token = jwt.sign(body, config.key, {expiresIn: "12h"});
 
 				response.status(200).json({
+					onBoard:snapshot.val().onBoard,
 					success: true, token: token
 				});
 			}
@@ -580,15 +581,16 @@ function googleLogin(req, response) {
 					email: body.emails[0].value,
 					name: body.name.givenName + " " + body.name.familyName,
 				});
-				data = {
+				/*data = {
 					onBoard: false,
 					authenticatedRequest: true,
 					isRegistered: false,
 					body: body
-				};
+				};*/
 
-				const token = jwt.sign(data, config.key, {expiresIn: "12h"});
+				const token = jwt.sign(body, config.key, {expiresIn: "12h"});
 				response.status(200).json({
+					onBoard:false,
 					success: true, token: token
 				});
 			}
@@ -635,9 +637,9 @@ function signUp(req, response) {
 	else {
 		let email = req.body.email;
 		let ref = database.ref('users/'+email);
-		
+
 		ref.once('value', function (snapshot) {
-			if (snapshot.val()) {
+			if (snapshot.val() && snapshot.val().onBoard===false) {
 				ref.update({
 					onBoard: true,
 					phone: req.body.phone,
@@ -648,6 +650,13 @@ function signUp(req, response) {
 					success: true,
 					message: "user onBoard"
 				});
+			}
+			else if(snapshot.val().onBoard===true){
+				response.status(405).json({
+					success:true,
+					err:'not allowed, already onboarded',
+				})
+
 			}
 			else {
 				response.status(403).json({
@@ -678,7 +687,7 @@ function randomFact(request,response) {
 //<------Returning the array of all the videos------>
 //Returns the array of videos containing title and url of a video.
 function video(request,response) {
-	
+
 	return database.ref('/videos').once('value')
 	.then((snapshot) => {
 		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
@@ -693,7 +702,7 @@ function video(request,response) {
 }
 
 // <-----Adding query to database------->
-// only add newly asked query to the database, if query will be null then it will return the empty query message else query will be added to database. 
+// only add newly asked query to the database, if query will be null then it will return the empty query message else query will be added to database.
 function addQuery(request,response){
 	const query = request.query.text;
 	const email=request.body.email;

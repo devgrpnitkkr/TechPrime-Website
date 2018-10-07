@@ -20,9 +20,9 @@ const isAuthenticated = (req, res, next) => {
                     });
                 }
                 else {
-                    let email = data.body.emails[0].value;
+                    let email = data.emails[0].value;
                      email = email.replace(/\./g, ',');
-                    const name = data.body.name.givenName + " " + data.body.name.familyName;
+                    const name = data.name.givenName + " " + data.name.familyName;
 
                     req.body.email = email;
                     req.body.name = name;
