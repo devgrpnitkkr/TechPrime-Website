@@ -547,8 +547,7 @@ function googleLogin(req, response) {
 		}
 
 		if (body.error !== undefined) {
-			return response.json({
-				message: "body ni aayi",
+			return response.status(401).json({
 				success: false, 
 				error: 'unauthenticated request'
 			});
