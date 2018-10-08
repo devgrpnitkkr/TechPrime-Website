@@ -45,14 +45,15 @@ app.post('/query',isAuthenticated,addQuery)
 
 app.get('/timestamp', getTimestamp);
 
+
 app.use('/', (req, res) => {
 
 	let data = {};
-	data.success = true,
-	data.message = "connected to server",
-	data.anotherMessage = "C'mon we created so many routes, use them!!"
+	let success = true;
+	let message = "connected to server",
+	let anotherMessage = "C'mon we created so many routes, use them!!"
 
-	res.json(data);
+	res.status(400).json({success:success,message:message,anotherMessage:anotherMessage});
 })
 
 
@@ -85,7 +86,7 @@ function matchEventDescription(database, data) {
 					data.registeredEvents.push(eventDetails);
 				}
 			}
-			data.success = true;
+			//data.success = true;
 			console.log(data);
 			return resolve(data);
 
@@ -122,7 +123,7 @@ function getRegisteredEvents(req, res)
 		return matchEventDescription(database, data)
 		.then((data) => {
 			console.log(data);
-			return res.json(data);
+			return res.json({success:true,data:data});
 		})
 		.catch((errData) => {
 			return res.json(errData);
@@ -130,7 +131,7 @@ function getRegisteredEvents(req, res)
 	})
 	.catch(() => {
 
-		res.send({
+		res.status(400).json({
 			success: false,
 			message: `Error while fetching user registered events`
 		})
@@ -191,7 +192,7 @@ function eventRegister(request, response)
 
 		let value = true;
 
-		response.send({
+		return response.status(400).json({
 			success: false,
 			message: `Invalid Parameters.\n Usage: eventName=event&eventCategory=category`
 		})
@@ -246,11 +247,13 @@ function eventRegister(request, response)
 			})
 			.then(() => {
 				return response.json({
+					success:true,
 					status: `Successfully registered for ${eventName}`
 				});
 			})
 			.catch(() => {
 				return response.json({
+					success:false,
 					message: "could not register!",
 					error: err
 				});
@@ -259,6 +262,7 @@ function eventRegister(request, response)
 		.catch(() => {
 
 			return response.json({
+				success:false,
 				message: "could not fetch user registered events",
 				error: err
 			});
@@ -301,8 +305,8 @@ function getEventNames(req, res)
 					data[category].push(eventName);
 				}
 			}
-			data.success = true;
-			return res.send(data);
+			var success = true;
+			return res.json({success:success,data:data});
 		})
 	}
 	else {
@@ -314,13 +318,13 @@ function getEventNames(req, res)
 		return db.child(node).once('value')
 		.then((snapshot) => {
 
-			console.log(snapshot.val());
+			//console.log(snapshot.val());
 			let database = snapshot.val();
 			if(database === null)
 			{
-				return res.send({
+				return res.json({
 					success: false,
-					message : `${category} category doesn't exist`
+					message:`${category} category doesn't exist`
 				});
 			}
 
@@ -332,8 +336,8 @@ function getEventNames(req, res)
 				data[category].push(database[event].eventName);
 			}
 
-			data.success = true;
-			return res.send(data);
+			var success = true;
+			return res.json({success:success,data:data});
 		})
 	}
 }
@@ -352,9 +356,9 @@ function getCategories(req, res) {
 			let category = i;
 			data.categories.push(category);
 		}
-		data.message = "Categories received";
-		data.success = true;
-		return res.json(data);
+		message = "Categories received";
+		success = true;
+		return res.json({message:message,success:success,data:data});
 	})
 	.catch((err) => {
 		return res.send({
@@ -498,7 +502,8 @@ function getEventTimeline(req, res) {
 
 	return db.child(events).once('value')
 	.then((snapshot) => {
-		return res.send(snapshot.val())
+		let data=snapshot.val();
+		return res.json({success:true,data:data});
 	})
 	.catch((err) => {
 		return res.send({
@@ -543,14 +548,15 @@ function googleLogin(req, response) {
 	request(googleUrl + req.body.accessToken, {json: true}, (err, res, body) => {
 		let data;
 		if (err) {
-			return res.status(400).json({success: false, err: err});
+
+			return res.status(400).json({success: false,err:err});
 		}
 
 		if (body.error !== undefined) {
 			return response.status(401).json({
 				message: "empty/invalid body received",
+				error: 'unauthenticated request',
 				success: false,
-				error: 'unauthenticated request'
 			});
 		}
 
@@ -569,10 +575,10 @@ function googleLogin(req, response) {
 				};*/
 
 				const token = jwt.sign(body, config.key, {expiresIn: "12h"});
-
-				response.status(200).json({
+				data={token:token};
+				return response.status(200).json({
 					onBoard:snapshot.val().onBoard,
-					success: true, token: token
+					success: true, data:data
 				});
 			}
 			else {
@@ -589,9 +595,10 @@ function googleLogin(req, response) {
 				};*/
 
 				const token = jwt.sign(body, config.key, {expiresIn: "12h"});
-				response.status(200).json({
+				data={token:token};
+				return response.status(200).json({
 					onBoard:false,
-					success: true, token: token
+					success: true, data:data
 				});
 			}
 		});
@@ -631,38 +638,40 @@ function signUp(req, response) {
 
 	if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
 		return response.status(400).json({
-			success: false, err: 'please pass valid/complete url parameters'
+			success: false,err:'please pass valid/complete url parameters'
 		});
 	}
-	else {
+	else{
 		let email = req.body.email;
 		let ref = database.ref('users/'+email);
 
 		ref.once('value', function (snapshot) {
-			if (snapshot.val() && snapshot.val().onBoard===false) {
+			if(snapshot.val()===null || snapshot.val()===undefined){
+				return response.status(403).json({
+					success: false,
+					err:'user does not exist'
+				});
+
+			}
+			else if (snapshot.val().onBoard===false) {
 				ref.update({
 					onBoard: true,
 					phone: req.body.phone,
 					college: req.body.college,
 					year: req.body.year,
 				});
-				response.status(200).json({
+				return response.status(200).json({
 					success: true,
-					message: "user onBoard"
+					message:"user onboarded",
 				});
 			}
-			else if(snapshot.val().onBoard===true){
-				response.status(405).json({
-					success:true,
-					err:'not allowed, already onboarded',
+			else {
+
+				return response.status(405).json({
+					success:false,
+					err:'not allowed, already onboarded'
 				})
 
-			}
-			else {
-				response.status(403).json({
-					success: false,
-					err: 'user does not exist'
-				})
 			}
 		});
 	}
@@ -676,9 +685,11 @@ function randomFact(request,response) {
 	const randomIndex = Math.floor(Math.random() * numberOfLines);
 	database.ref('/facts/' + randomIndex).on('value',function(snapshot){
 		console.log(snapshot.val());
-		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-		response.status(401).json({
-			message : snapshot.val()
+		response.set('Cache-Control', 'public, max-age=30000 , s-maxage=60000');
+		let data={message:snapshot.val()};
+		response.status(200).json({
+			success:true,
+			data:data
 		});
 	});
 }
@@ -691,7 +702,8 @@ function video(request,response) {
 	return database.ref('/videos').once('value')
 	.then((snapshot) => {
 		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-		return response.status(401).send(snapshot.val());
+		let data=snapshot.val();
+		response.status(200).json({success:true,data:data});
 	})
 	.catch((err) => {
 		return response.send({
@@ -714,17 +726,17 @@ function addQuery(request,response){
 	if(query !== undefined)
 	{
 		database.ref().child(email_child).push(query);
-		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
-		response.status(401).json({
+		response.status(200).json({
+			success:true,
 			message : "query successfully added"
 		});
 	}
 	else
 	{
-		response.status(500).json({
+		response.status(400).json({
+			success:false,
 			message: "empty query"
 		})
 	}
 }
-
 exports.api = functions.https.onRequest(app);
