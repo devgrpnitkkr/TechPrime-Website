@@ -11,3 +11,18 @@
 [debug] [2018-10-08T11:31:54.963Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
 [debug] [2018-10-08T11:31:54.964Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
 
+[debug] [2018-10-08T11:31:56.942Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-08T11:31:56.944Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-08T11:31:58.897Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from 'F:\TechPrime-Website'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-08T11:32:00.496Z] Fetching environment
+[debug] [2018-10-08T11:32:00.501Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-08T11:32:01.198Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-08T11:32:01.199Z] Starting @google-cloud/functions-emulator
+[debug] [2018-10-08T11:32:04.944Z] Parsing function triggers
+[info] +  functions: api: http://localhost:5000/techspardha-87928/us-central1/api
