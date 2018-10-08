@@ -53,11 +53,7 @@ app.use('/', (req, res) => {
 	let message = "connected to server",
 	let anotherMessage = "C'mon we created so many routes, use them!!"
 
-	res.status(400).json({
-		success: success,
-		message: message,
-		anotherMessage:anotherMessage
-	});
+	res.status(400).json({success:success,message:message,anotherMessage:anotherMessage});
 })
 
 
@@ -144,6 +140,21 @@ function getRegisteredEvents(req, res)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //send time stamp of the server
 function getTimestamp(req, res) {
 
@@ -152,6 +163,14 @@ function getTimestamp(req, res) {
 		timestamp: Date.now()
 	}));
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -499,6 +518,16 @@ function getEventTimeline(req, res) {
 
 
 
+
+
+
+
+
+
+
+
+
+
 /*
 *   /googleLogin
 *   get:
@@ -576,6 +605,13 @@ function googleLogin(req, response) {
 	});
 
 }
+
+
+
+
+
+
+
 
 
 
@@ -703,5 +739,4 @@ function addQuery(request,response){
 		})
 	}
 }
-
 exports.api = functions.https.onRequest(app);
