@@ -50,8 +50,8 @@ app.use('/', (req, res) => {
 
 	let data = {};
 	let success = true;
-	let message = "connected to server",
-	let anotherMessage = "C'mon we created so many routes, use them!!"
+	let message = "connected to server";
+	let anotherMessage = "C'mon we created so many routes, use them!!";
 
 	res.status(400).json({success:success,message:message,anotherMessage:anotherMessage});
 })
@@ -703,7 +703,7 @@ function video(request,response) {
 	.then((snapshot) => {
 		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
 		let data=snapshot.val();
-		response.status(200).json({success:true,data:data});
+		return response.status(200).json({success:true,data:data});
 	})
 	.catch((err) => {
 		return response.send({
