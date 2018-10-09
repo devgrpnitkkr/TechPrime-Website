@@ -9,24 +9,6 @@ const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
 
-const storage = functions.storage.object();
-const os = require('os');
-const spawn = require('child-process-promise').spawn;
-const path = require('path');
-const Busboy=require('busboy');
-const fs=require('fs');
-const cors = require('cors')({
-	origin: true
-});
-const gcconfig={
-	projectId: 'techspardha-87928',
-	keyFilename: 'techspardha-87928-firebase-adminsdk-90uao-5f04854960.json'
-}
-
-const gcs=require('@google-cloud/storage');
-console.log(gcs);
-
-
 
 admin.initializeApp();
 const database = admin.database();
@@ -81,6 +63,97 @@ app.get('/admin/query', isAuthenticated, getQuery);
 
 
 
+
+const os = require('os');
+const path = require('path');
+
+const cors = require('cors')({
+	origin: true
+});
+
+const Busboy=require('busboy');
+const fs=require('fs');
+const gcconfig={
+	projectId: 'techspardha-87928',
+	keyFilename: 'techspardha-87928-firebase-adminsdk-90uao-5f04854960.json'
+};
+
+const gcs = require('@google-cloud/storage')(gcconfig);
+
+exports.uploadFile = functions.https.onRequest((req, res) => {
+
+	cors(req, res, () => {
+		if(req.method !== 'POST')
+		{
+			res.status(500).json({
+				message: "Use POST request.",
+				success: false
+			});
+		}
+		const busboy = new Busboy({headers: req.headers});
+
+		let uploadData = null;
+		busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+
+			const filepath = path.join(os.tmpdir(), filename);
+			uploadData = {
+				file: filepath,
+				type: mimetype
+			};
+			file.pipe(fs.createWriteStream(filepath));
+		});
+
+		busboy.on('finish', () => {
+
+			if(uploadData === null) {
+
+				return res.status(400).json({
+					success: false,
+					message: "file not sent."
+				})
+			}
+
+			const bucket = gcs.bucket('techspardha-87928.appspot.com');
+			bucket.upload(uploadData.file, {
+				uploadType: 'media' ,
+				metadata: {
+					metadata: {
+						contentType: uploadData.type
+					}
+				}
+			})
+			.then(() => {
+
+				return res.status(200).json({
+					message: "File uploaded successfully!",
+				});
+			})
+			.catch(() => {
+
+				res.status(500).json({
+					error: "crashed",
+					success: false
+				});
+			});
+		});
+		
+		busboy.end(req.rawBody);
+	});
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // exports.generateThumbnail = storage.onFinalize((object) => {
 
 
@@ -96,44 +169,44 @@ app.get('/admin/query', isAuthenticated, getQuery);
 
 // })
 
-exports.uploadFile = functions.https.onRequest((req, res) => {
-	const busboy = new Busboy({headers: req.headers});
-	let uploadData = null;
-	
+// exports.uploadFile = functions.https.onRequest((req, res) => {
+// 	const busboy = new Busboy({headers: req.headers});
+// 	let uploadData = null;
 
-	busboy.on('file',(fieldname,file,filename,encoding,mimetype) => {
-		
-		const filepath = path.join(os.tmpdir(), filename);
-		uploadData={
-			file: filepath,
-			type: mimetype
-		};
-		file.pipe(fs.createWriteStream(filepath));
-	});
 
-	busboy.on('finish',() => {
-		const bucket=gcs.bucket('techspardha-87928.appspot.com');
-		bucket.upload(uploadData.file, {
-			uploadType: 'media' ,
-			metadata: {
-				metadata: {
-					contentType: uploadData.type
-				}
-			}
-		}).then(() =>{
-			return res.status(200).json({
-				message: "It worked!",
-            // file: filename,
-            // type: mimetype
-        });
-		}).catch(err => {
-			res.status(500).json({
-				error: err
-			});
-		});
-	});
-	busboy.end(req.rawBody);
-});
+// 	busboy.on('file',(fieldname,file,filename,encoding,mimetype) => {
+
+// 		const filepath = path.join(os.tmpdir(), filename);
+// 		uploadData={
+// 			file: filepath,
+// 			type: mimetype
+// 		};
+// 		file.pipe(fs.createWriteStream(filepath));
+// 	});
+
+// 	busboy.on('finish',() => {
+// 		const bucket=gcs.bucket('techspardha-87928.appspot.com');
+// 		bucket.upload(uploadData.file, {
+// 			uploadType: 'media' ,
+// 			metadata: {
+// 				metadata: {
+// 					contentType: uploadData.type
+// 				}
+// 			}
+// 		}).then(() =>{
+// 			return res.status(200).json({
+// 				message: "It worked!",
+//             // file: filename,
+//             // type: mimetype
+//         });
+// 		}).catch(err => {
+// 			res.status(500).json({
+// 				error: err
+// 			});
+// 		});
+// 	});
+// 	busboy.end(req.rawBody);
+// });
 
 
 
