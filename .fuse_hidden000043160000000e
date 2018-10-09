@@ -1,0 +1,136 @@
+[debug] [2018-10-09T05:23:31.981Z] ----------------------------------------------------------------------
+[debug] [2018-10-09T05:23:31.982Z] Command:       /usr/bin/node /usr/bin/firebase serve
+[debug] [2018-10-09T05:23:31.983Z] CLI Version:   5.0.1
+[debug] [2018-10-09T05:23:31.983Z] Platform:      linux
+[debug] [2018-10-09T05:23:31.983Z] Node Version:  v8.12.0
+[debug] [2018-10-09T05:23:31.983Z] Time:          Tue Oct 09 2018 10:53:31 GMT+0530 (IST)
+[debug] [2018-10-09T05:23:31.983Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-09T05:23:32.009Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-09T05:23:32.009Z] > authorizing via signed-in user
+[debug] [2018-10-09T05:23:32.010Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
+[debug] [2018-10-09T05:23:32.012Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-10-09T05:23:32.012Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2018-10-09T05:23:32.939Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:23:32.952Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-09T05:23:35.656Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:23:35.659Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-09T05:23:37.711Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/media/ankurcharan/EA84A99384A96335/Intel Inside/Web Dev/Techspardha/merge'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-09T05:23:38.183Z] Fetching environment
+[debug] [2018-10-09T05:23:38.184Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-09T05:23:38.184Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805/clients/_:getWebAppConfig  
+ 
+[debug] [2018-10-09T05:23:39.560Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:23:39.560Z] Starting @google-cloud/functions-emulator
+[debug] [2018-10-09T05:23:40.382Z] <<< HTTP RESPONSE 200
+[info] i  hosting: Serving hosting files from: public
+[info] ✔  hosting: Local server: http://localhost:5000
+[debug] [2018-10-09T05:23:40.589Z] Parsing function triggers
+[info] ✔  functions: api: http://localhost:5001/techspardha-87928/us-central1/api
+[debug] [2018-10-09T05:36:04.085Z] ----------------------------------------------------------------------
+[debug] [2018-10-09T05:36:04.087Z] Command:       /usr/bin/node /usr/bin/firebase serve
+[debug] [2018-10-09T05:36:04.087Z] CLI Version:   5.0.1
+[debug] [2018-10-09T05:36:04.087Z] Platform:      linux
+[debug] [2018-10-09T05:36:04.087Z] Node Version:  v8.12.0
+[debug] [2018-10-09T05:36:04.087Z] Time:          Tue Oct 09 2018 11:06:04 GMT+0530 (IST)
+[debug] [2018-10-09T05:36:04.087Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-09T05:36:04.095Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-09T05:36:04.096Z] > authorizing via signed-in user
+[debug] [2018-10-09T05:36:04.096Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
+[debug] [2018-10-09T05:36:04.098Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-09T05:36:06.317Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:36:06.323Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-09T05:36:08.349Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/media/ankurcharan/EA84A99384A96335/Intel Inside/Web Dev/Techspardha/merge'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-09T05:36:08.713Z] Fetching environment
+[debug] [2018-10-09T05:36:08.716Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-09T05:36:08.717Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805/clients/_:getWebAppConfig  
+ 
+[debug] [2018-10-09T05:36:09.576Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:36:09.578Z] Starting @google-cloud/functions-emulator
+[debug] [2018-10-09T05:36:09.594Z] <<< HTTP RESPONSE 200
+[warn] ⚠  hosting: Port 5000 is not available. Trying another port...
+[debug] [2018-10-09T05:36:09.613Z] Parsing function triggers
+[info] i  hosting: Serving hosting files from: public
+[info] ✔  hosting: Local server: http://localhost:5005
+[debug] [2018-10-09T05:36:24.513Z] ----------------------------------------------------------------------
+[debug] [2018-10-09T05:36:24.515Z] Command:       /usr/bin/node /usr/bin/firebase serve
+[debug] [2018-10-09T05:36:24.516Z] CLI Version:   5.0.1
+[debug] [2018-10-09T05:36:24.516Z] Platform:      linux
+[debug] [2018-10-09T05:36:24.516Z] Node Version:  v8.12.0
+[debug] [2018-10-09T05:36:24.516Z] Time:          Tue Oct 09 2018 11:06:24 GMT+0530 (IST)
+[debug] [2018-10-09T05:36:24.516Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-09T05:36:24.524Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-09T05:36:24.524Z] > authorizing via signed-in user
+[debug] [2018-10-09T05:36:24.524Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
+[debug] [2018-10-09T05:36:24.526Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-09T05:36:26.579Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:36:26.581Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-09T05:36:28.419Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/media/ankurcharan/EA84A99384A96335/Intel Inside/Web Dev/Techspardha/merge'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-09T05:36:28.792Z] Fetching environment
+[debug] [2018-10-09T05:36:28.795Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-09T05:36:28.795Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805/clients/_:getWebAppConfig  
+ 
+[debug] [2018-10-09T05:36:29.517Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:36:29.518Z] Starting @google-cloud/functions-emulator
+[debug] [2018-10-09T05:36:29.534Z] <<< HTTP RESPONSE 200
+[warn] ⚠  hosting: Port 5000 is not available. Trying another port...
+[info] i  hosting: Serving hosting files from: public
+[info] ✔  hosting: Local server: http://localhost:5005
+[debug] [2018-10-09T05:36:29.554Z] Parsing function triggers
+[debug] [2018-10-09T05:36:58.960Z] ----------------------------------------------------------------------
+[debug] [2018-10-09T05:36:58.962Z] Command:       /usr/bin/node /usr/bin/firebase serve
+[debug] [2018-10-09T05:36:58.963Z] CLI Version:   5.0.1
+[debug] [2018-10-09T05:36:58.963Z] Platform:      linux
+[debug] [2018-10-09T05:36:58.963Z] Node Version:  v8.12.0
+[debug] [2018-10-09T05:36:58.963Z] Time:          Tue Oct 09 2018 11:06:58 GMT+0530 (IST)
+[debug] [2018-10-09T05:36:58.963Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-09T05:36:58.971Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-09T05:36:58.971Z] > authorizing via signed-in user
+[debug] [2018-10-09T05:36:58.971Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
+[debug] [2018-10-09T05:36:58.973Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-09T05:37:02.401Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:37:02.402Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-09T05:37:04.255Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/media/ankurcharan/EA84A99384A96335/Intel Inside/Web Dev/Techspardha/merge'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-09T05:37:04.626Z] Fetching environment
+[debug] [2018-10-09T05:37:04.628Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-09T05:37:04.629Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805/clients/_:getWebAppConfig  
+ 
+[debug] [2018-10-09T05:37:05.483Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T05:37:05.484Z] Starting @google-cloud/functions-emulator
+[debug] [2018-10-09T05:37:05.500Z] <<< HTTP RESPONSE 200
+[warn] ⚠  hosting: Port 5000 is not available. Trying another port...
+[info] i  hosting: Serving hosting files from: public
+[info] ✔  hosting: Local server: http://localhost:5005
+[debug] [2018-10-09T05:37:05.519Z] Parsing function triggers
