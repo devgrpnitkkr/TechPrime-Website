@@ -122,7 +122,20 @@ exports.uploadFile = functions.https.onRequest((req, res) => {
 					}
 				}
 			})
-			.then(() => {
+			.then((data) => {
+
+				// let file = data[0];
+				// file.getSignedUrl({
+				// 	action: 'read',
+				// 	expires: '03-17-2025'
+				// }, function(err, url) {
+				// 	if (err) {
+				// 		console.error(err);
+				// 		return;
+				// 	}
+
+				// 	console.log(url);
+				// })
 
 				return res.status(200).json({
 					message: "File uploaded successfully!",

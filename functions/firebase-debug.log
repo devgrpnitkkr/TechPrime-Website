@@ -1,0 +1,26 @@
+[debug] [2018-10-09T13:33:48.701Z] ----------------------------------------------------------------------
+[debug] [2018-10-09T13:33:48.704Z] Command:       /usr/bin/node /usr/bin/firebase serve
+[debug] [2018-10-09T13:33:48.704Z] CLI Version:   5.0.1
+[debug] [2018-10-09T13:33:48.704Z] Platform:      linux
+[debug] [2018-10-09T13:33:48.704Z] Node Version:  v8.12.0
+[debug] [2018-10-09T13:33:48.704Z] Time:          Tue Oct 09 2018 19:03:48 GMT+0530 (IST)
+[debug] [2018-10-09T13:33:48.704Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-09T13:33:48.713Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-09T13:33:48.713Z] > authorizing via signed-in user
+[debug] [2018-10-09T13:33:48.713Z] [iam] checking project techspardha-87928 for permissions ["firebase.projects.get"]
+[debug] [2018-10-09T13:33:48.715Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928:testIamPermissions  
+
+[debug] [2018-10-09T13:33:51.250Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-09T13:33:51.254Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/techspardha-87928  
+ 
+[debug] [2018-10-09T13:33:53.287Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/media/ankurcharan/EA84A99384A96335/Intel Inside/Web Dev/Techspardha/merge'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-10-09T13:33:53.657Z] Fetching environment
+[debug] [2018-10-09T13:33:53.659Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805:getServerAppConfig  
+ 
+[debug] [2018-10-09T13:33:53.660Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/14707849805/clients/_:getWebAppConfig  
+ 
