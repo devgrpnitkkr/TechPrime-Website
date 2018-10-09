@@ -25,8 +25,8 @@ const isAuthenticatedAdmin = (req, res, next) => {
                     email = email.replace(/@/g, '');
                     //console.log('isAuthenticatedAdmin email = '+ email);
                     //console.log(admins[email]);
-                    if(admins[email]===true)
-                    return next();
+                    if(admins[email] === true)
+                        return next();
                     else {
                       res.status(401).json({
                           success: false, err: 'you are not an admin, please request admin rights'

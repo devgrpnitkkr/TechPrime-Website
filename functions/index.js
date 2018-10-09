@@ -9,16 +9,17 @@ const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
 admin.initializeApp();
-let database = admin.database();
+const database = admin.database();
 const db = database.ref();
 
 
 // Hard-Coded String
-let events = "events";
-let eventDescription = "eventDescription";
-let userRegistrations = "userRegistrations";
-let users = "users";
-let registeredEvents = "registeredEvents";
+const events = "events";
+const eventDescription = "eventDescription";
+const userRegistrations = "userRegistrations";
+const users = "users";
+const registeredEvents = "registeredEvents";
+const queries = "queries";
 const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
 
 // express
@@ -33,7 +34,7 @@ app.post('/login', googleLogin);
 app.put('/user', isAuthenticated, signUp);
 
 app.get('/events', getEventNames);
-app.get('/categories', getCategories);
+app.get('/events/categories', getCategories);
 app.get('/events/description', getEventDescription);
 app.get('/events/timeline', getEventTimeline);
 app.post('/events', isAuthenticated, addEvent);
@@ -47,15 +48,16 @@ app.post('/query',isAuthenticated,addQuery)
 app.get('/timestamp', getTimestamp);
 
 app.get('/admin/event', isAuthenticated, getEventUsers);
+app.get('/admin/query', isAuthenticated, getQuery);
 
 app.use('/', (req, res) => {
 
 	let data = {};
-	let success = true;
+	let success = false;
 	let message = "connected to server";
 	let anotherMessage = "C'mon we created so many routes, use them!!";
 
-	res.status(400).json({success:success,message:message,anotherMessage:anotherMessage});
+	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
 })
 
 
@@ -148,17 +150,17 @@ function matchEventDescription(database, data) {
 			for(let category in database)
 			{
 				let arrLen = database[category].length;
+				data[category] = new Array();
 
 				for(let event = 0 ; event < arrLen ; event++)
 				{
 					// event is single events registered by user in category = category
 					let userEvent = database[category][event];
 					let eventDetails = eventsDes[category][userEvent];
-					data.registeredEvents.push(eventDetails);
+
+					data[category].push(eventDetails);
 				}
 			}
-			//data.success = true;
-			console.log(data);
 			return resolve(data);
 
 		})
@@ -181,20 +183,19 @@ function matchEventDescription(database, data) {
 function getRegisteredEvents(req, res)
 {
 	let email = req.body.email;
-	console.log(email);
 
 	db.child(users + "/" + email + "/" + registeredEvents).once('value')
 	.then((snapshot) => {
 
 		let database = snapshot.val();
-		let data = {"registeredEvents": []};
-
-		console.log(database);
+		let data = {};
 
 		return matchEventDescription(database, data)
 		.then((data) => {
-			console.log(data);
-			return res.json({success:true,data:data});
+			return res.status(200).json({
+				success: true,
+				data: data
+			});
 		})
 		.catch((errData) => {
 			return res.json(errData);
@@ -377,7 +378,7 @@ function getEventNames(req, res)
 				}
 			}
 			var success = true;
-			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -409,7 +410,7 @@ function getEventNames(req, res)
 			}
 
 			var success = true;
-			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -431,7 +432,7 @@ function getCategories(req, res) {
 		}
 		message = "Categories received";
 		success = true;
-		res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+		// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 		return res.json({message:message,success:success,data:data});
 	})
 	.catch((err) => {
@@ -534,10 +535,11 @@ function getEventDescription(req, res) {
 					message: `${categoryName} does't exist.`
 				});
 			}
-
-			snapshot.success = true;
-			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
-			return res.send(snapshot.val());
+			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+			return res.status(200).json({
+				data: snapshot.val(),
+				success: true
+			});
 		})
 		.catch(() => {
 			return res.json({
@@ -559,9 +561,11 @@ function getEventDescription(req, res) {
 					message: `${eventName} in ${categoryName} doesn't exist.`
 				});
 			}
-			snapshot.success = true;
-			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
-			return res.send(snapshot.val())
+			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+			return res.status(200).json({
+				data: snapshot.val(),
+				success: true
+			})
 		})
 		.catch((err) => {
 			return res.send({
@@ -579,7 +583,7 @@ function getEventTimeline(req, res) {
 	return db.child(events).once('value')
 	.then((snapshot) => {
 		let data=snapshot.val();
-		res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+		// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 		return res.json({
 			success:true,
 			data:data
@@ -765,7 +769,7 @@ function randomFact(request,response) {
 	const randomIndex = Math.floor(Math.random() * numberOfLines);
 	database.ref('/facts/' + randomIndex).on('value',function(snapshot){
 		console.log(snapshot.val());
-		response.set('Cache-Control', 'public, max-age=30000 , s-maxage=60000');
+		// response.set('Cache-Control', 'public, max-age=30000 , s-maxage=60000');
 		let data={message:snapshot.val()};
 		response.status(200).json({
 			success:true,
@@ -781,7 +785,7 @@ function video(request,response) {
 
 	return database.ref('/videos').once('value')
 	.then((snapshot) => {
-		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
+		// response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
 		let data=snapshot.val();
 		return response.status(200).json({success:true,data:data});
 	})
@@ -819,4 +823,42 @@ function addQuery(request,response){
 		})
 	}
 }
+
+// returns query to admin
+function getQuery(req, res) {
+
+	db.child(queries).once('value')
+	.then(function (snapshot) {
+
+		let userQueries = snapshot.val();
+
+		let data = {};
+		for(user in userQueries) {
+
+			email = user.replace(/,/g, '.');
+
+			data[email] = new Array();
+
+			for(query in userQueries[user]) {
+
+				console.log(email, userQueries[user][query]);
+				data[email].push(userQueries[user][query]);
+			}
+		}
+
+		return res.status(200).json({
+			success: true,
+			data: data
+		});
+	})
+	.catch(() => {
+
+		return res.status(500).json({
+			error: "error getting queries",
+			success: false
+		})
+	})
+
+}
+
 exports.api = functions.https.onRequest(app);
