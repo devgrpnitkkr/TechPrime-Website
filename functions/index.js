@@ -7,6 +7,12 @@ const bodyParser = require('body-parser');
 const isAuthenticated = require('./middlewares/auth');
 const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
+// const gcs = require('@google-cloud/storage')();
+const spawn = require('child-process-promise').spawn;
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
+const storage = functions.storage.object();
 
 admin.initializeApp();
 const database = admin.database();
@@ -50,6 +56,54 @@ app.get('/timestamp', getTimestamp);
 app.get('/admin/event', isAuthenticated, getEventUsers);
 app.get('/admin/query', isAuthenticated, getQuery);
 
+
+
+
+
+
+exports.generateThumbnail = storage.onFinalize((object) => {
+
+
+	const fileBucket = object.bucket; // The Storage bucket that contains the file.
+	const filePath = object.name; // File path in the bucket.
+	const contentType = object.contentType; // File content type.
+	const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
+
+	console.log(fileBucket);
+	console.log(filePath);
+	console.log(contentType);
+	console.log(metageneration);
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.use('/', (req, res) => {
 
 	let data = {};
@@ -59,7 +113,6 @@ app.use('/', (req, res) => {
 
 	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
 })
-
 
 // return users registered in one single event
 function getEventUsers(req, res) {
