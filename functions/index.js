@@ -45,6 +45,7 @@ app.post('/query',isAuthenticated,addQuery)
 
 app.get('/timestamp', getTimestamp);
 
+app.get('/admin/event', isAuthenticated, getEventUsers);
 
 app.use('/', (req, res) => {
 
@@ -57,8 +58,76 @@ app.use('/', (req, res) => {
 })
 
 
+// return users registered in one single event
+function getEventUsers(req, res) {
+
+	let eventName = req.query.eventName;
+	let eventCategory = req.query.eventCategory;
+
+	if(eventName === undefined || eventCategory === undefined) {
+
+		return res.status(400).json({
+			success: false,
+			message: `Usage: eventName=name&eventCategory=category`
+		})
+	}
+
+	db.child(events + "/" + eventCategory + "/" + eventName).once('value')
+		.then((snapshot) => {
+
+			if(snapshot.val() === null) {
+				return res.status(400).json({
+					success: false,
+					message: `${eventName} in ${eventCategory} doesn't exist`
+				})
+			}
+
+            db.child(users).once('value')
+                .then((snapshot) => {
+
+                    let allUsers = snapshot.val();
+
+                    let data = {};
+                    data["users"] = new Array();
+
+                    for(user in allUsers) {
+
+                        if(allUsers[user][registeredEvents] === undefined) {
+                            continue;
+                        }
+
+                        if(allUsers[user][registeredEvents][eventCategory] === undefined) {
+                            continue;
+                        }
+
+                        if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) != -1) {
+                            data["users"].push(allUsers[user]);
+                        }
+
+                    }
+
+                    return res.status(200).json({
+                        data: data,
+                        success: true
+                    })
+                })
+                .catch(() => {
+
+                    res.status(500).json({
+                        success: false,
+                        message: `error fetching users node`
+                    })
+                })
+		})
+		.catch(() => {
+			res.status(500).json({
+				success: false,
+				message: "could not see events. internal error"
+			})
+		})
 
 
+}
 
 
 
