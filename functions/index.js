@@ -38,6 +38,7 @@ app.get('/events/timeline', getEventTimeline);
 app.post('/events', isAuthenticated, addEvent);
 app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
+app.get('/admin/event', isAuthenticated, getEventUsers);
 
 app.get('/facts',randomFact);
 app.get('/videos',video);
@@ -50,8 +51,8 @@ app.use('/', (req, res) => {
 
 	let data = {};
 	let success = true;
-	let message = "connected to server",
-	let anotherMessage = "C'mon we created so many routes, use them!!"
+	let message = "connected to server";
+	let anotherMessage = "C'mon we created so many routes, use them!!";
 
 	res.status(400).json({success:success,message:message,anotherMessage:anotherMessage});
 })
@@ -275,7 +276,98 @@ function eventRegister(request, response)
 
 
 
+function eventRegister(request, response)
+{
 
+	let eventName = request.query.eventName;
+	let eventCategory = request.query.eventCategory;
+	let email = request.body.email;
+
+	let value;
+	if(eventName === undefined || eventCategory === undefined) {
+
+		let value = true;
+
+		return response.status(400).json({
+			success: false,
+			message: `Invalid Parameters.\n Usage: eventName=event&eventCategory=category`
+		})
+	}
+	else
+	{
+		value = false;
+	}
+
+	if(value === false)
+	{
+		// get previsouly registered events
+		db.child(users + "/" + email + "/" + registeredEvents).once('value')
+		.then((snapshot) => {
+
+			let registeredEvent = snapshot.val();
+			if(registeredEvent === undefined || registeredEvent === null)
+			{
+				registeredEvent = {};
+			}
+
+			// if not registred any events in that category
+			if(registeredEvent[eventCategory] === undefined)
+			{
+				// create array fro category
+				registeredEvent[eventCategory] = new Array();
+				// push event into that category
+				registeredEvent[eventCategory].push(eventName);
+			}
+			else
+			{
+				// if category already exists
+				// push event to that category
+
+				// if event already registered
+				if(registeredEvent[eventCategory].indexOf(eventName) === -1)
+				{
+					registeredEvent[eventCategory].push(eventName);
+				}
+				else
+				{
+					return response.send({
+						success: false,
+						message: `already registered for ${eventName}`
+					})
+				}
+			}
+
+			// update user registered events
+			return db.child(users + "/" + email).update({
+				"registeredEvents": registeredEvent
+			})
+			.then(() => {
+				return response.json({
+					success:true,
+					status: `Successfully registered for ${eventName}`
+				});
+			})
+			.catch(() => {
+				return response.json({
+					success:false,
+					message: "could not register!",
+					error: err
+				});
+			})
+		})
+		.catch(() => {
+
+			return response.json({
+				success:false,
+				message: "could not fetch user registered events",
+				error: err
+			});
+		})
+	}
+
+
+
+}
 //return eventName
 // {
 // 	"managerial": ["a", "b"],
