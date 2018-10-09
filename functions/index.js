@@ -99,7 +99,6 @@ function getEventUsers(req, res) {
                         if(allUsers[user][registeredEvents][eventCategory] === undefined) {
                             continue;
                         }
-
                         if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) !== -1) {
                             data["users"].push(allUsers[user]);
                         }
@@ -113,14 +112,14 @@ function getEventUsers(req, res) {
                 })
                 .catch(() => {
 
-                    return res.status(500).json({
+                    res.status(500).json({
                         success: false,
                         message: `error fetching users node`
                     })
                 })
 
         	return true;
-		})
+        })
 		.catch(() => {
 			res.status(500).json({
 				success: false,
