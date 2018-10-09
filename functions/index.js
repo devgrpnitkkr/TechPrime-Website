@@ -376,6 +376,7 @@ function getEventNames(req, res)
 				}
 			}
 			var success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -407,6 +408,7 @@ function getEventNames(req, res)
 			}
 
 			var success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -428,6 +430,7 @@ function getCategories(req, res) {
 		}
 		message = "Categories received";
 		success = true;
+		res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 		return res.json({message:message,success:success,data:data});
 	})
 	.catch((err) => {
@@ -532,6 +535,7 @@ function getEventDescription(req, res) {
 			}
 
 			snapshot.success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.send(snapshot.val());
 		})
 		.catch(() => {
@@ -555,6 +559,7 @@ function getEventDescription(req, res) {
 				});
 			}
 			snapshot.success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.send(snapshot.val())
 		})
 		.catch((err) => {
@@ -573,7 +578,11 @@ function getEventTimeline(req, res) {
 	return db.child(events).once('value')
 	.then((snapshot) => {
 		let data=snapshot.val();
-		return res.json({success:true,data:data});
+		res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+		return res.json({
+			success:true,
+			data:data
+		});
 	})
 	.catch((err) => {
 		return res.send({
