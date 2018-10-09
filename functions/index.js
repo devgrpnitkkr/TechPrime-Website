@@ -5,6 +5,7 @@ const request = require('request');
 const express = require('express');
 const bodyParser = require('body-parser');
 const isAuthenticated = require('./middlewares/auth');
+const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
 admin.initializeApp();
