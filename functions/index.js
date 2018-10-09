@@ -45,9 +45,9 @@ app.post('/events', isAuthenticated, addEvent);
 app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
 
-app.get('/facts',randomFact);
-app.get('/videos',video);
-app.post('/query',isAuthenticated,addQuery)
+app.get('/facts', randomFact);
+app.get('/videos', video);
+app.post('/query', isAuthenticated, addQuery)
 
 app.get('/timestamp', getTimestamp);
 
@@ -151,20 +151,28 @@ function matchEventDescription(database, data) {
 
 			let eventsDes = snap.val();
 
+			data[events] = new Array();
+
 			for(let category in database)
 			{
 				let arrLen = database[category].length;
-				data[category] = new Array();
-
+			
 				for(let event = 0 ; event < arrLen ; event++)
 				{
 					// event is single events registered by user in category = category
 					let userEvent = database[category][event];
 					let eventDetails = eventsDes[category][userEvent];
 
-					data[category].push(eventDetails);
+					eventDetails["eventCategory"] = category;
+
+					data[events].push(eventDetails);
+					// console.log(eventDetails);
+
+					// data[category].push(eventDetails);
 				}
 			}
+
+			console.log(data);
 			return resolve(data);
 
 		})
@@ -360,30 +368,32 @@ function eventRegister(request, response)
 
 function getEventNames(req, res)
 {
-
 	//optional - eventCategory
 	if(req.query.eventCategory === undefined) {
 
 		return db.child(events).once('value')
 		.then((snapshot) => {
 
-			var database = snapshot.val();
+			let database = snapshot.val();
+			let data = {};
+			data[events] = new Array();
 
-			var data = {"events": []};
-			for(var category in database)
+			for(let category in database)
 			{
-				let categoryData = {};
-				categoryData["categoryName"] = category;
-				categoryData["eventNames"] = new Array();
 				for(let event in database[category])
 				{
-
-					let eventName = database[category][event].eventName;
-					categoryData["eventNames"].push(eventName);
+					
+					let eventData = new Object;
+					let eventName = database[category][event]["eventName"];
+					
+					eventData["eventName"] = eventName;
+					eventData["eventCategory"] = category;
+				
+					data[events].push(eventData);
 				}
-				data[events].push(categoryData);
+			
 			}
-			var success = true;
+			let success = true;
 			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
@@ -408,11 +418,14 @@ function getEventNames(req, res)
 			}
 
 			let data = {};
-			data[category] = new Array();
+			data[events] = new Array();
 
 			for(let event in database)
 			{
-				data[category].push(database[event].eventName);
+				data[events].push({
+					eventName: database[event].eventName,
+					eventCategory: category
+				});
 			}
 
 			var success = true;
@@ -538,12 +551,28 @@ function getEventDescription(req, res) {
 
 				return res.send({
 					success: false,
-					message: `${categoryName} does't exist.`
+					message: `${categoryName} doesn't exist.`
 				});
 			}
+
+			let database = snapshot.val();
+			console.log(database);
+
+			let data = {};
+			data[events] = new Array();
+
+			for(let event in database) {
+
+				let eventData = database[event];
+				eventData["eventCategory"] = categoryName;
+				console.log(eventData);
+
+				data[events].push(eventData);
+			}
+
 			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.status(200).json({
-				data: snapshot.val(),
+				data: data,
 				success: true
 			});
 		})
@@ -559,17 +588,18 @@ function getEventDescription(req, res) {
 		db.child(`${eventDescription}/${categoryName}/${eventName}`).once('value')
 		.then((snapshot) => {
 
-			console.log(snapshot.val());
-
-			if(snapshot.val() === null) {
+			let data = snapshot.val();
+			if(data === null) {
 				return res.send({
 					success: false,
 					message: `${eventName} in ${categoryName} doesn't exist.`
 				});
 			}
+
+			data["eventCategory"] = categoryName;
 			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.status(200).json({
-				data: snapshot.val(),
+				data: data,
 				success: true
 			})
 		})
@@ -588,15 +618,30 @@ function getEventTimeline(req, res) {
 
 	return db.child(events).once('value')
 	.then((snapshot) => {
-		let data=snapshot.val();
+		let database = snapshot.val();
+
+		let data = {};
+		data[events] = new Array();
+
+		for(let category in database) {
+
+			for(let event in database[category]) {
+
+				let eventData = database[category][event];
+				eventData["eventCategory"] = category;
+				
+				data[events].push(eventData);
+			}
+		}
+
 		// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
-		return res.json({
+		return res.status(200).json({
 			success:true,
 			data:data
 		});
 	})
 	.catch((err) => {
-		return res.send({
+		return res.status(500).send({
 			success: false,
 			message: `Error occured while getting events timeline\n Error : ${err}`
 		})
@@ -871,17 +916,22 @@ function getQuery(req, res) {
 		let userQueries = snapshot.val();
 
 		let data = {};
+		data[queries] = new Array();
+
 		for(user in userQueries) {
 
+			let obj = {};
+			
 			email = user.replace(/,/g, '.');
 
-			data[email] = new Array();
+			obj["email"] = email;
+			obj["query"] = new Array();
 
 			for(query in userQueries[user]) {
 
-				console.log(email, userQueries[user][query]);
-				data[email].push(userQueries[user][query]);
+				obj["query"].push(userQueries[user][query]);
 			}
+			data[queries].push(obj);
 		}
 
 		return res.status(200).json({
