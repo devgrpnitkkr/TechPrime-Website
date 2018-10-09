@@ -831,14 +831,11 @@ function getQuery(req, res) {
 	.then(function (snapshot) {
 
 		let userQueries = snapshot.val();
-		// console.log(userQueries);
 
 		let data = {};
 		for(user in userQueries) {
 
-			// console.log(userQueries[user]);
 			email = user.replace(/,/g, '.');
-			// console.log(email);
 
 			data[email] = new Array();
 
