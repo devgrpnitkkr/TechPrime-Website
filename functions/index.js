@@ -38,7 +38,6 @@ app.get('/events/timeline', getEventTimeline);
 app.post('/events', isAuthenticated, addEvent);
 app.get('/user/event', isAuthenticated, getRegisteredEvents);
 app.put('/user/event', isAuthenticated, eventRegister);
-app.get('/admin/event', isAuthenticated, getEventUsers);
 
 app.get('/facts',randomFact);
 app.get('/videos',video);
@@ -46,6 +45,7 @@ app.post('/query',isAuthenticated,addQuery)
 
 app.get('/timestamp', getTimestamp);
 
+app.get('/admin/event', isAuthenticated, getEventUsers);
 
 app.use('/', (req, res) => {
 
@@ -58,8 +58,77 @@ app.use('/', (req, res) => {
 })
 
 
+// return users registered in one single event
+function getEventUsers(req, res) {
+
+	let eventName = req.query.eventName;
+	let eventCategory = req.query.eventCategory;
+
+	if(eventName === undefined || eventCategory === undefined) {
+
+		return res.status(400).json({
+			success: false,
+			message: `Usage: eventName=name&eventCategory=category`
+		})
+	}
+
+	db.child(events + "/" + eventCategory + "/" + eventName).once('value')
+		.then((snapshot) => {
+
+			if(snapshot.val() === null) {
+				return res.status(400).json({
+					success: false,
+					message: `${eventName} in ${eventCategory} doesn't exist`
+				})
+			}
+
+            db.child(users).once('value')
+                .then((snapshot) => {
+
+                    let allUsers = snapshot.val();
+
+                    let data = {};
+                    data["users"] = new Array();
+
+                    for(user in allUsers) {
+
+                        if(allUsers[user][registeredEvents] === undefined) {
+                            continue;
+                        }
+
+                        if(allUsers[user][registeredEvents][eventCategory] === undefined) {
+                            continue;
+                        }
+                        if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) !== -1) {
+                            data["users"].push(allUsers[user]);
+                        }
+
+                    }
+
+                    return res.status(200).json({
+                        data: data,
+                        success: true
+                    })
+                })
+                .catch(() => {
+
+                    res.status(500).json({
+                        success: false,
+                        message: `error fetching users node`
+                    })
+                })
+
+        	return true;
+        })
+		.catch(() => {
+			res.status(500).json({
+				success: false,
+				message: "could not see events. internal error"
+			})
+		})
 
 
+}
 
 
 
@@ -276,98 +345,7 @@ function eventRegister(request, response)
 
 
 
-function eventRegister(request, response)
-{
 
-	let eventName = request.query.eventName;
-	let eventCategory = request.query.eventCategory;
-	let email = request.body.email;
-
-	let value;
-	if(eventName === undefined || eventCategory === undefined) {
-
-		let value = true;
-
-		return response.status(400).json({
-			success: false,
-			message: `Invalid Parameters.\n Usage: eventName=event&eventCategory=category`
-		})
-	}
-	else
-	{
-		value = false;
-	}
-
-	if(value === false)
-	{
-		// get previsouly registered events
-		db.child(users + "/" + email + "/" + registeredEvents).once('value')
-		.then((snapshot) => {
-
-			let registeredEvent = snapshot.val();
-			if(registeredEvent === undefined || registeredEvent === null)
-			{
-				registeredEvent = {};
-			}
-
-			// if not registred any events in that category
-			if(registeredEvent[eventCategory] === undefined)
-			{
-				// create array fro category
-				registeredEvent[eventCategory] = new Array();
-				// push event into that category
-				registeredEvent[eventCategory].push(eventName);
-			}
-			else
-			{
-				// if category already exists
-				// push event to that category
-
-				// if event already registered
-				if(registeredEvent[eventCategory].indexOf(eventName) === -1)
-				{
-					registeredEvent[eventCategory].push(eventName);
-				}
-				else
-				{
-					return response.send({
-						success: false,
-						message: `already registered for ${eventName}`
-					})
-				}
-			}
-
-			// update user registered events
-			return db.child(users + "/" + email).update({
-				"registeredEvents": registeredEvent
-			})
-			.then(() => {
-				return response.json({
-					success:true,
-					status: `Successfully registered for ${eventName}`
-				});
-			})
-			.catch(() => {
-				return response.json({
-					success:false,
-					message: "could not register!",
-					error: err
-				});
-			})
-		})
-		.catch(() => {
-
-			return response.json({
-				success:false,
-				message: "could not fetch user registered events",
-				error: err
-			});
-		})
-	}
-
-
-
-}
 //return eventName
 // {
 // 	"managerial": ["a", "b"],
@@ -398,6 +376,7 @@ function getEventNames(req, res)
 				}
 			}
 			var success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -429,6 +408,7 @@ function getEventNames(req, res)
 			}
 
 			var success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -450,6 +430,7 @@ function getCategories(req, res) {
 		}
 		message = "Categories received";
 		success = true;
+		res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 		return res.json({message:message,success:success,data:data});
 	})
 	.catch((err) => {
@@ -554,6 +535,7 @@ function getEventDescription(req, res) {
 			}
 
 			snapshot.success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.send(snapshot.val());
 		})
 		.catch(() => {
@@ -577,6 +559,7 @@ function getEventDescription(req, res) {
 				});
 			}
 			snapshot.success = true;
+			res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 			return res.send(snapshot.val())
 		})
 		.catch((err) => {
@@ -595,7 +578,11 @@ function getEventTimeline(req, res) {
 	return db.child(events).once('value')
 	.then((snapshot) => {
 		let data=snapshot.val();
-		return res.json({success:true,data:data});
+		res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+		return res.json({
+			success:true,
+			data:data
+		});
 	})
 	.catch((err) => {
 		return res.send({
@@ -795,7 +782,7 @@ function video(request,response) {
 	.then((snapshot) => {
 		response.set('Cache-Control', 'public, max-age=300 , s-maxage=600');
 		let data=snapshot.val();
-		response.status(200).json({success:true,data:data});
+		return response.status(200).json({success:true,data:data});
 	})
 	.catch((err) => {
 		return response.send({
