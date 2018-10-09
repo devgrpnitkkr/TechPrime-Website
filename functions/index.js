@@ -362,7 +362,6 @@ function getEventNames(req, res)
 {
 
 	//optional - eventCategory
-
 	if(req.query.eventCategory === undefined) {
 
 		return db.child(events).once('value')
@@ -370,16 +369,19 @@ function getEventNames(req, res)
 
 			var database = snapshot.val();
 
-			var data = {};
+			var data = {"events": []};
 			for(var category in database)
 			{
-				data[category] = new Array();
+				let categoryData = {};
+				categoryData["categoryName"] = category;
+				categoryData["eventNames"] = new Array();
 				for(let event in database[category])
 				{
 
 					let eventName = database[category][event].eventName;
-					data[category].push(eventName);
+					categoryData["eventNames"].push(eventName);
 				}
+				data[events].push(categoryData);
 			}
 			var success = true;
 			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
