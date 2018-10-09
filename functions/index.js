@@ -5,6 +5,7 @@ const request = require('request');
 const express = require('express');
 const bodyParser = require('body-parser');
 const isAuthenticated = require('./middlewares/auth');
+const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
 admin.initializeApp();
@@ -50,11 +51,11 @@ app.get('/admin/event', isAuthenticated, getEventUsers);
 app.use('/', (req, res) => {
 
 	let data = {};
-	let success = true;
+	let success = false;
 	let message = "connected to server";
 	let anotherMessage = "C'mon we created so many routes, use them!!";
 
-	res.status(400).json({success:success,message:message,anotherMessage:anotherMessage});
+	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
 })
 
 
