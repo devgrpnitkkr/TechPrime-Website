@@ -7,12 +7,26 @@ const bodyParser = require('body-parser');
 const isAuthenticated = require('./middlewares/auth');
 const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
-// const gcs = require('@google-cloud/storage')();
+
+
+const storage = functions.storage.object();
+const os = require('os');
 const spawn = require('child-process-promise').spawn;
 const path = require('path');
-const os = require('os');
-const fs = require('fs');
-const storage = functions.storage.object();
+const Busboy=require('busboy');
+const fs=require('fs');
+const cors = require('cors')({
+	origin: true
+});
+const gcconfig={
+	projectId: 'techspardha-87928',
+	keyFilename: 'techspardha-87928-firebase-adminsdk-90uao-5f04854960.json'
+}
+
+const gcs=require('@google-cloud/storage');
+console.log(gcs);
+
+
 
 admin.initializeApp();
 const database = admin.database();
@@ -31,6 +45,12 @@ const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
 // express
 const app = express();
 app.use(bodyParser.urlencoded({extended:false}));
+
+
+
+
+
+
 
 
 
@@ -61,20 +81,59 @@ app.get('/admin/query', isAuthenticated, getQuery);
 
 
 
-exports.generateThumbnail = storage.onFinalize((object) => {
+// exports.generateThumbnail = storage.onFinalize((object) => {
 
 
-	const fileBucket = object.bucket; // The Storage bucket that contains the file.
-	const filePath = object.name; // File path in the bucket.
-	const contentType = object.contentType; // File content type.
-	const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
+// 	const fileBucket = object.bucket; // The Storage bucket that contains the file.
+// 	const filePath = object.name; // File path in the bucket.
+// 	const contentType = object.contentType; // File content type.
+// 	const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
 
-	console.log(fileBucket);
-	console.log(filePath);
-	console.log(contentType);
-	console.log(metageneration);
+// 	console.log(fileBucket);
+// 	console.log(filePath);
+// 	console.log(contentType);
+// 	console.log(metageneration);
 
-})
+// })
+
+exports.uploadFile = functions.https.onRequest((req, res) => {
+	const busboy = new Busboy({headers: req.headers});
+	let uploadData = null;
+	
+
+	busboy.on('file',(fieldname,file,filename,encoding,mimetype) => {
+		
+		const filepath = path.join(os.tmpdir(), filename);
+		uploadData={
+			file: filepath,
+			type: mimetype
+		};
+		file.pipe(fs.createWriteStream(filepath));
+	});
+
+	busboy.on('finish',() => {
+		const bucket=gcs.bucket('techspardha-87928.appspot.com');
+		bucket.upload(uploadData.file, {
+			uploadType: 'media' ,
+			metadata: {
+				metadata: {
+					contentType: uploadData.type
+				}
+			}
+		}).then(() =>{
+			return res.status(200).json({
+				message: "It worked!",
+            // file: filename,
+            // type: mimetype
+        });
+		}).catch(err => {
+			res.status(500).json({
+				error: err
+			});
+		});
+	});
+	busboy.end(req.rawBody);
+});
 
 
 
@@ -129,59 +188,59 @@ function getEventUsers(req, res) {
 	}
 
 	db.child(events + "/" + eventCategory + "/" + eventName).once('value')
+	.then((snapshot) => {
+
+		if(snapshot.val() === null) {
+			return res.status(400).json({
+				success: false,
+				message: `${eventName} in ${eventCategory} doesn't exist`
+			})
+		}
+
+		db.child(users).once('value')
 		.then((snapshot) => {
 
-			if(snapshot.val() === null) {
-				return res.status(400).json({
-					success: false,
-					message: `${eventName} in ${eventCategory} doesn't exist`
-				})
+			let allUsers = snapshot.val();
+
+			let data = {};
+			data["users"] = new Array();
+
+			for(user in allUsers) {
+
+				if(allUsers[user][registeredEvents] === undefined) {
+					continue;
+				}
+
+				if(allUsers[user][registeredEvents][eventCategory] === undefined) {
+					continue;
+				}
+				if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) !== -1) {
+					data["users"].push(allUsers[user]);
+				}
+
 			}
 
-            db.child(users).once('value')
-                .then((snapshot) => {
-
-                    let allUsers = snapshot.val();
-
-                    let data = {};
-                    data["users"] = new Array();
-
-                    for(user in allUsers) {
-
-                        if(allUsers[user][registeredEvents] === undefined) {
-                            continue;
-                        }
-
-                        if(allUsers[user][registeredEvents][eventCategory] === undefined) {
-                            continue;
-                        }
-                        if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) !== -1) {
-                            data["users"].push(allUsers[user]);
-                        }
-
-                    }
-
-                    return res.status(200).json({
-                        data: data,
-                        success: true
-                    })
-                })
-                .catch(() => {
-
-                    res.status(500).json({
-                        success: false,
-                        message: `error fetching users node`
-                    })
-                })
-
-        	return true;
-        })
-		.catch(() => {
-			res.status(500).json({
-				success: false,
-				message: "could not see events. internal error"
+			return res.status(200).json({
+				data: data,
+				success: true
 			})
 		})
+		.catch(() => {
+
+			res.status(500).json({
+				success: false,
+				message: `error fetching users node`
+			})
+		})
+
+		return true;
+	})
+	.catch(() => {
+		res.status(500).json({
+			success: false,
+			message: "could not see events. internal error"
+		})
+	})
 
 
 }
@@ -221,13 +280,13 @@ function matchEventDescription(database, data) {
 
 			console.log("error: ", err);		// have to add
 												// deploy shows error - error needs to be handled
-			data = {
-				success: false,
-				message: `coould not fetch event description`
-			};
+												data = {
+													success: false,
+													message: `coould not fetch event description`
+												};
 
-			return reject(data);
-		})
+												return reject(data);
+											})
 
 	})
 }
