@@ -76,59 +76,59 @@ function getEventUsers(req, res) {
 	}
 
 	db.child(events + "/" + eventCategory + "/" + eventName).once('value')
+	.then((snapshot) => {
+
+		if(snapshot.val() === null) {
+			return res.status(400).json({
+				success: false,
+				message: `${eventName} in ${eventCategory} doesn't exist`
+			})
+		}
+
+		db.child(users).once('value')
 		.then((snapshot) => {
 
-			if(snapshot.val() === null) {
-				return res.status(400).json({
-					success: false,
-					message: `${eventName} in ${eventCategory} doesn't exist`
-				})
+			let allUsers = snapshot.val();
+
+			let data = {};
+			data["users"] = new Array();
+
+			for(user in allUsers) {
+
+				if(allUsers[user][registeredEvents] === undefined) {
+					continue;
+				}
+
+				if(allUsers[user][registeredEvents][eventCategory] === undefined) {
+					continue;
+				}
+				if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) !== -1) {
+					data["users"].push(allUsers[user]);
+				}
+
 			}
 
-            db.child(users).once('value')
-                .then((snapshot) => {
-
-                    let allUsers = snapshot.val();
-
-                    let data = {};
-                    data["users"] = new Array();
-
-                    for(user in allUsers) {
-
-                        if(allUsers[user][registeredEvents] === undefined) {
-                            continue;
-                        }
-
-                        if(allUsers[user][registeredEvents][eventCategory] === undefined) {
-                            continue;
-                        }
-                        if(allUsers[user][registeredEvents][eventCategory].indexOf(eventName) !== -1) {
-                            data["users"].push(allUsers[user]);
-                        }
-
-                    }
-
-                    return res.status(200).json({
-                        data: data,
-                        success: true
-                    })
-                })
-                .catch(() => {
-
-                    res.status(500).json({
-                        success: false,
-                        message: `error fetching users node`
-                    })
-                })
-
-        	return true;
-        })
-		.catch(() => {
-			res.status(500).json({
-				success: false,
-				message: "could not see events. internal error"
+			return res.status(200).json({
+				data: data,
+				success: true
 			})
 		})
+		.catch(() => {
+
+			res.status(500).json({
+				success: false,
+				message: `error fetching users node`
+			})
+		})
+
+		return true;
+	})
+	.catch(() => {
+		res.status(500).json({
+			success: false,
+			message: "could not see events. internal error"
+		})
+	})
 
 
 }
@@ -167,7 +167,7 @@ function matchEventDescription(database, data) {
 		.catch((err) => {
 
 			console.log("error: ", err);		// have to add
-												// deploy shows error - error needs to be handled
+			// deploy shows error - error needs to be handled
 			data = {
 				success: false,
 				message: `coould not fetch event description`
@@ -651,42 +651,63 @@ function googleLogin(req, response) {
 
 		ref.once('value', (snapshot) => {
 			if (snapshot.val()) {
-			/*	data = {
-					onBoard: snapshot.val().onBoard,
-					authenticatedRequest: true,
-					isRegistered: true,
-					body: body
-				};*/
-
-				const token = jwt.sign(body, config.key, {expiresIn: "12h"});
-				data={token:token};
-				return response.status(200).json({
+				/*	data = {
+				onBoard: snapshot.val().onBoard,
+				authenticatedRequest: true,
+				isRegistered: true,
+				body: body
+			};*/
+			if(snapshot.val().onBoard===true)
+			{
+				jwttoken={
+					email:snapshot.val().email,
+					name:snapshot.val().name,
 					onBoard:snapshot.val().onBoard,
-					success: true, data:data
-				});
+					phone:snapshot.val().phone,
+					college:snapshot.val().college,
+					year:snapshot.val().year
+				}
+			}else {
+				jwttoken={
+					email:snapshot.val().email,
+					name:snapshot.val().name,
+					onBoard:snapshot.val().onBoard,
+				}
 			}
-			else {
-				database.ref(email_child).set({
-					onBoard: false,
-					email: body.emails[0].value,
-					name: body.name.givenName + " " + body.name.familyName,
-				});
-				/*data = {
-					onBoard: false,
-					authenticatedRequest: true,
-					isRegistered: false,
-					body: body
-				};*/
 
-				const token = jwt.sign(body, config.key, {expiresIn: "12h"});
-				data={token:token};
-				return response.status(200).json({
-					onBoard:false,
-					success: true, data:data
-				});
-			}
+			const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
+			data={token:token};
+			return response.status(200).json({
+				onBoard:snapshot.val().onBoard,
+				success: true, data:data
+			});
+		}
+		else {
+			database.ref(email_child).set({
+				onBoard: false,
+				email: body.emails[0].value,
+				name: body.name.givenName + " " + body.name.familyName,
+			});
+			/*data = {
+			onBoard: false,
+			authenticatedRequest: true,
+			isRegistered: false,
+			body: body
+		};*/
+		jwttoken={
+			email:body.emails[0].value,
+			name:body.name.givenName + " " + body.name.familyName,
+			onBoard:false,
+		};
+		const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
+		data={token:token};
+		return response.status(200).json({
+			onBoard:false,
+			success: true, data:data
 		});
-	});
+	}
+});
+});
 
 }
 
@@ -744,9 +765,20 @@ function signUp(req, response) {
 					college: req.body.college,
 					year: req.body.year,
 				});
+				jwttoken={
+					email:snapshot.val().email,
+					name:snapshot.val().name,
+					onBoard: true,
+					phone: req.body.phone,
+					college: req.body.college,
+					year: req.body.year,
+				}
+				const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
+				let data={token:token};
 				return response.status(200).json({
 					success: true,
 					message:"user onboarded",
+					data:data
 				});
 			}
 			else {
@@ -858,7 +890,7 @@ function getQuery(req, res) {
 			success: false
 		})
 	})
-
+	
 }
 
 exports.api = functions.https.onRequest(app);
