@@ -80,8 +80,7 @@ const gcconfig={
 	keyFilename: 'techspardha-87928-firebase-adminsdk-90uao-4ba2ed363c.json'
 };
 
-const {gc} = require('@google-cloud/storage');
-const gcs = new gc();
+const gcs = require('@google-cloud/storage')(gcconfig);
 
 exports.uploadFile = functions.https.onRequest((req, res) => {
 
