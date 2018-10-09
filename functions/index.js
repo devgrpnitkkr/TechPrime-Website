@@ -8,7 +8,9 @@ const isAuthenticated = require('./middlewares/auth');
 const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
-
+const os = require('os');
+const path = require('path');
+const fs=require('fs');
 
 admin.initializeApp();
 const database = admin.database();
@@ -64,21 +66,22 @@ app.get('/admin/query', isAuthenticated, getQuery);
 
 
 
-const os = require('os');
-const path = require('path');
+
+
 
 const cors = require('cors')({
 	origin: true
 });
 
-const Busboy=require('busboy');
-const fs=require('fs');
+const Busboy = require('busboy');
+
 const gcconfig={
 	projectId: 'techspardha-87928',
-	keyFilename: 'techspardha-87928-firebase-adminsdk-90uao-5f04854960.json'
+	keyFilename: 'techspardha-87928-firebase-adminsdk-90uao-4ba2ed363c.json'
 };
 
-const gcs = require('@google-cloud/storage')(gcconfig);
+const {gc} = require('@google-cloud/storage');
+const gcs = new gc();
 
 exports.uploadFile = functions.https.onRequest((req, res) => {
 
