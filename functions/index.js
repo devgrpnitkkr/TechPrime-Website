@@ -8,6 +8,8 @@ const isAuthenticated = require('./middlewares/auth');
 const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
+const cors = require('cors');
+
 admin.initializeApp();
 const database = admin.database();
 const db = database.ref();
@@ -28,8 +30,10 @@ app.use(bodyParser.urlencoded({extended:false}));
 
 
 
-
 // routes
+app.use(cors({origin: true}));
+
+
 app.post('/login', googleLogin);
 app.put('/user', isAuthenticated, signUp);
 
