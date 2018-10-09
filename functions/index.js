@@ -9,16 +9,17 @@ const isAuthenticatedAdmin = require('./middlewares/admin');
 const config = require('./config');
 
 admin.initializeApp();
-let database = admin.database();
+const database = admin.database();
 const db = database.ref();
 
 
 // Hard-Coded String
-let events = "events";
-let eventDescription = "eventDescription";
-let userRegistrations = "userRegistrations";
-let users = "users";
-let registeredEvents = "registeredEvents";
+const events = "events";
+const eventDescription = "eventDescription";
+const userRegistrations = "userRegistrations";
+const users = "users";
+const registeredEvents = "registeredEvents";
+const queries = "queries";
 const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
 
 // express
@@ -47,6 +48,7 @@ app.post('/query',isAuthenticated,addQuery)
 app.get('/timestamp', getTimestamp);
 
 app.get('/admin/event', isAuthenticated, getEventUsers);
+app.get('/admin/query', getQuery);
 
 app.use('/', (req, res) => {
 
@@ -821,4 +823,45 @@ function addQuery(request,response){
 		})
 	}
 }
+
+// returns query to admin 
+function getQuery(req, res) {
+
+	db.child(queries).once('value')
+	.then(function (snapshot) {
+
+		let userQueries = snapshot.val();
+		// console.log(userQueries);
+
+		let data = {};
+		for(user in userQueries) {
+
+			// console.log(userQueries[user]);
+			email = user.replace(/\,/g, '.');
+			// console.log(email);
+
+			data[email] = new Array();
+
+			for(query in userQueries[user]) {
+
+				console.log(email, userQueries[user][query]);
+				data[email].push(userQueries[user][query]);
+			}
+		}
+
+		return res.status(200).json({
+			success: true,
+			data: data
+		});
+	})
+	.catch((err) => {
+
+		return res.status(500).json({
+			error: "error getting queries",
+			success: false
+		})
+	})
+
+}
+
 exports.api = functions.https.onRequest(app);
