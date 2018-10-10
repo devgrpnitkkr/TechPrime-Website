@@ -56,6 +56,10 @@ app.get('/admin/query', isAuthenticated, getQuery);
 
 app.post('/admin/notification',addNotification);
 app.get('/notification',getNotifications)
+
+app.get('/contacts', getContacts);
+
+
 app.use('/', (req, res) => {
 
 	let data = {};
@@ -1010,6 +1014,61 @@ function getNotifications(req,res){
 			success: false
 		})
 	})
+}
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+
+	                // CONTACT US
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+
+
+
+function getContacts(req, res) {
+
+	db.child('/contacts').once('value')
+	.then((snapshot) => {
+
+		let database = snapshot.val();
+
+		let data = {};
+		data["contacts"] = new Array();
+
+		for(let category in database) {
+
+			let type = {};
+			type["section"] = category;
+			type["people"] = new Array();
+
+			for(let person in database[category]) {
+
+				type["people"].push(database[category][person]);
+			}
+
+			data["contacts"].push(type);
+		}
+
+		return res.status(200).json({
+			data: data,
+			success: true
+		});
+	})
+	.catch(() => {
+
+		return res.status(500).json({
+			success: false,
+			message: 'could not fetch contacts'
+		});
+	})
+
 }
 
 exports.api = functions.https.onRequest(app);
