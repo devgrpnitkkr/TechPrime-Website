@@ -1152,6 +1152,12 @@ function getNextEvents(req, res) {
 			data: data
 		})
 	})
+	.catch(() => {
+		return res.status(500).json({
+			success: false,
+			message: "could not fetch events"
+		})
+	})
 
 }
 
