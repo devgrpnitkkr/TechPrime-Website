@@ -285,8 +285,8 @@ function getTimestamp(req, res) {
 function eventRegister(request, response)
 {
 
-	let eventName = request.query.eventName;
-	let eventCategory = request.query.eventCategory;
+	let eventName = request.body.eventName;
+	let eventCategory = request.body.eventCategory;
 	let email = request.body.email;
 
 	let value;
