@@ -961,13 +961,13 @@ function getQuery(req, res) {
 ////////////////////////////////////////////////////////
 
 function addNotification(req,res){
-	if(req.query.notif==undefined){
+	if(req.body.notif==undefined){
 		return res.status(400).json({
 			success:false,
 			error:'empty notification'
 		});
 	}
-	let notif=req.query.notif;
+	let notif=req.body.notif;
 	let date=`${Date.now()}`;
 	let node=9999999999999-date;
 	db.child('notifications').child(node).set({
