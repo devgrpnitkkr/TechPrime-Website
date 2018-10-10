@@ -23,7 +23,7 @@ const users = "users";
 const registeredEvents = "registeredEvents";
 const queries = "queries";
 const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
-
+const notifications='notifications';
 // express
 const app = express();
 app.use(bodyParser.urlencoded({extended:false}));
@@ -54,6 +54,8 @@ app.get('/timestamp', getTimestamp);
 app.get('/admin/event', isAuthenticated, getEventUsers);
 app.get('/admin/query', isAuthenticated, getQuery);
 
+app.post('/admin/notification',addNotification);
+app.get('/notification',getNotifications)
 app.use('/', (req, res) => {
 
 	let data = {};
@@ -156,7 +158,7 @@ function matchEventDescription(database, data) {
 			for(let category in database)
 			{
 				let arrLen = database[category].length;
-			
+
 				for(let event = 0 ; event < arrLen ; event++)
 				{
 					// event is single events registered by user in category = category
@@ -382,16 +384,16 @@ function getEventNames(req, res)
 			{
 				for(let event in database[category])
 				{
-					
+
 					let eventData = new Object;
 					let eventName = database[category][event]["eventName"];
-					
+
 					eventData["eventName"] = eventName;
 					eventData["eventCategory"] = category;
-				
+
 					data[events].push(eventData);
 				}
-			
+
 			}
 			let success = true;
 			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
@@ -629,7 +631,7 @@ function getEventTimeline(req, res) {
 
 				let eventData = database[category][event];
 				eventData["eventCategory"] = category;
-				
+
 				data[events].push(eventData);
 			}
 		}
@@ -921,7 +923,7 @@ function getQuery(req, res) {
 		for(user in userQueries) {
 
 			let obj = {};
-			
+
 			email = user.replace(/,/g, '.');
 
 			obj["email"] = email;
@@ -946,7 +948,65 @@ function getQuery(req, res) {
 			success: false
 		})
 	})
-	
+
+}
+
+
+///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+
+	                //NOTIFICATIONS
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+
+function addNotification(req,res){
+	if(req.query.notif==undefined){
+		return res.status(400).json({
+			success:false,
+			error:'empty notification'
+		});
+	}
+	let notif=req.query.notif;
+	let date=`${Date.now()}`;
+	let node=9999999999999-date;
+	db.child('notifications').child(node).set({
+		time:date,
+		notif:notif
+	});
+	res.status(200).json({
+		success:true,
+		message:'notification added'
+	});
+}
+
+function getNotifications(req,res){
+	let data=db.child('notifications').once('value').then(snapshot =>{
+		//console.log(snapshot.val());
+		let notifs = snapshot.val();
+
+		let data = {};
+		data[notifications] = new Array();
+
+		for(not in notifs) {
+
+			let obj = {};
+
+			//console.log(not);
+			obj["notif"] =notifs[not]['notif'];
+			obj["time"] = notifs[not]['time'];
+
+			data[notifications].push(obj);
+		}
+		//console.log(data);
+		res.json({success:true,data:data});
+	}).catch(() => {
+
+		return res.status(500).json({
+			error: "error getting notifications",
+			success: false
+		})
+	})
 }
 
 exports.api = functions.https.onRequest(app);
