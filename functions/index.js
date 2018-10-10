@@ -961,7 +961,7 @@ function getQuery(req, res) {
 ////////////////////////////////////////////////////////
 
 function addNotification(req,res){
-	if(req.query.notif==undefined){
+	if(req.query.notif === undefined) {
 		return res.status(400).json({
 			success:false,
 			error:'empty notification'
@@ -981,7 +981,7 @@ function addNotification(req,res){
 }
 
 function getNotifications(req,res){
-	let data=db.child('notifications').once('value').then(snapshot =>{
+	let data=db.child('notifications').once('value').then(snapshot => {
 		//console.log(snapshot.val());
 		let notifs = snapshot.val();
 
@@ -999,7 +999,10 @@ function getNotifications(req,res){
 			data[notifications].push(obj);
 		}
 		//console.log(data);
-		res.json({success:true,data:data});
+		return res.json({
+			success:true,
+			data:data
+		});
 	}).catch(() => {
 
 		return res.status(500).json({
