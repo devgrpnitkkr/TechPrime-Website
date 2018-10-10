@@ -22,7 +22,7 @@ const userRegistrations = "userRegistrations";
 const users = "users";
 const registeredEvents = "registeredEvents";
 const queries = "queries";
-const googleUrl = 'https://www.googleapis.com/plus/v1/people/me?access_token=';
+const googleUrl = 'https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=';
 const notifications='notifications';
 // express
 const app = express();
@@ -698,14 +698,14 @@ function getEventTimeline(req, res) {
 */
 function googleLogin(req, response) {
 
-	request(googleUrl + req.body.accessToken, {json: true}, (err, res, body) => {
+	request(googleUrl + req.body.idToken, {json: true}, (err, res, body) => {
 		let data;
 		if (err) {
 
 			return res.status(400).json({success: false,err:err});
 		}
 
-		if (body.error !== undefined) {
+		if (body.error_description !== undefined) {
 			return response.status(401).json({
 				message: "empty/invalid body received",
 				error: 'unauthenticated request',
@@ -713,11 +713,11 @@ function googleLogin(req, response) {
 			});
 		}
 
-		let email1 = body.emails[0].value;
+		let email1 = body.email;
 		let email = email1.replace(/\./g, ',');
 		let email_child = "users/" + email;
 		let ref = database.ref().child(email_child);
-
+		let picture =body.picture;
 		ref.once('value', (snapshot) => {
 			if (snapshot.val()) {
 				/*	data = {
@@ -731,15 +731,18 @@ function googleLogin(req, response) {
 				jwttoken={
 					email:snapshot.val().email,
 					name:snapshot.val().name,
+					picture:snapshot.val().picture,
 					onBoard:snapshot.val().onBoard,
 					phone:snapshot.val().phone,
 					college:snapshot.val().college,
-					year:snapshot.val().year
+					year:snapshot.val().year,
+
 				}
 			}else {
 				jwttoken={
 					email:snapshot.val().email,
 					name:snapshot.val().name,
+					picture:snapshot.val().picture,
 					onBoard:snapshot.val().onBoard,
 				}
 			}
@@ -754,8 +757,9 @@ function googleLogin(req, response) {
 		else {
 			database.ref(email_child).set({
 				onBoard: false,
-				email: body.emails[0].value,
-				name: body.name.givenName + " " + body.name.familyName,
+				email: body.email,
+				name: body.name,
+				picture:body.picture
 			});
 			/*data = {
 			onBoard: false,
@@ -764,8 +768,9 @@ function googleLogin(req, response) {
 			body: body
 		};*/
 		jwttoken={
-			email:body.emails[0].value,
-			name:body.name.givenName + " " + body.name.familyName,
+			email:body.email,
+			name:body.name,
+			picture:body.picture,
 			onBoard:false,
 		};
 		const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
@@ -837,6 +842,7 @@ function signUp(req, response) {
 				jwttoken={
 					email:snapshot.val().email,
 					name:snapshot.val().name,
+					picture:snapshot.val().picture,
 					onBoard: true,
 					phone: req.body.phone,
 					college: req.body.college,
@@ -1126,13 +1132,13 @@ function getNextEvents(req, res) {
 				endTime = parseInt(endTime);
 
 				database[category][event]["eventCategory"] = category;
-				
+
 				if(timestamp >= startTime && timestamp <= endTime) {
 
 					let obj = {};
 					obj["status"] = "live";
 					obj["eventDetails"] = database[category][event];
-				
+
 					data[events].push(obj);
 				}
 
