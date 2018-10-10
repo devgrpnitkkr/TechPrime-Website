@@ -50,6 +50,7 @@ app.get('/videos', video);
 app.post('/query', isAuthenticated, addQuery)
 
 app.get('/timestamp', getTimestamp);
+app.get('/timestamp/events', getNextEvents);
 
 app.get('/admin/event', isAuthenticated, getEventUsers);
 app.get('/admin/query', isAuthenticated, getQuery);
@@ -487,6 +488,17 @@ function addEvent(req, res) {
 			message: `Send event data as json data in $eventData`
 		})
 	}
+
+	if(eventData["eventName"] === undefined || eventData["startTime"] === undefined || eventData["endTime"] === undefined || eventData["category"] === undefined) {
+
+		return res.status(400).json({
+			success:false,
+			message: "eventName, startTime, endTime, category -- are compulsory parameters"
+		})
+	}
+
+	eventData.startTime = parseInt(eventData.startTime);
+	eventData.endTime = parseInt(eventData.endTime);
 
 	// adding event to timeline
 	// name, startTime and endTime
@@ -1067,6 +1079,78 @@ function getContacts(req, res) {
 			success: false,
 			message: 'could not fetch contacts'
 		});
+	})
+
+}
+
+///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+
+	                // TIMESTAMP
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+
+// gives next 1 hour events
+function getNextEvents(req, res) {
+
+
+	let timestamp = req.query.timestamp;
+
+	if(timestamp === undefined) {
+
+		return res.status(400).json({
+			success: false,
+			message: "send timestamp"
+		})
+	}
+
+	timestamp = parseInt(timestamp);
+
+	db.child(events).once('value')
+	.then((snapshot) => {
+
+		let database = snapshot.val();
+
+		let data = {};
+		data[events] = new Array();
+
+		for(let category  in database) {
+
+			for(let event in database[category]) {
+
+				let startTime = database[category][event].startTime;
+				let endTime = database[category][event].endTime;
+
+				startTime = parseInt(startTime);
+				endTime = parseInt(endTime);
+
+				database[category][event]["eventCategory"] = category;
+				
+				if(timestamp >= startTime && timestamp <= endTime) {
+
+					let obj = {};
+					obj["status"] = "live";
+					obj["eventDetails"] = database[category][event];
+				
+					data[events].push(obj);
+				}
+
+				if(timestamp + 3600000 <= startTime) {
+
+					let obj = {};
+					obj["status"] = "upcoming";
+
+					obj["eventDetails"] = database[category][event];
+					data[events].push(obj);
+				}
+			}
+		}
+
+		return res.status(200).json({
+			success:true,
+			data: data
+		})
 	})
 
 }
