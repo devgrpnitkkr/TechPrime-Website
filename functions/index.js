@@ -24,6 +24,7 @@ const registeredEvents = "registeredEvents";
 const queries = "queries";
 const googleUrl = 'https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=';
 const notifications='notifications';
+const sponsor_node = 'sponsors';
 // express
 const app = express();
 app.use(bodyParser.urlencoded({extended:false}));
@@ -56,10 +57,18 @@ app.get('/admin/event', isAuthenticated, getEventUsers);
 app.get('/admin/query', isAuthenticated, getQuery);
 
 app.post('/admin/notification',addNotification);
-app.get('/notification',getNotifications)
+app.get('/notification',getNotifications);
 
 app.get('/contacts', getContacts);
+/**
+ * Route to obtain section wise sponsors
+*/
+app.get('/sponsors', getSponsors);
 
+/**
+ * Route to add a sponsor to a section
+*/
+app.post('/sponsors', addSponsor);
 
 app.use('/', (req, res) => {
 
@@ -1165,6 +1174,83 @@ function getNextEvents(req, res) {
 		})
 	})
 
+}
+
+/**
+	* Function to get section wise sponsors
+	* Called by get on '/sponsor' route
+*/
+function getSponsors(req, res) {
+
+	db.child('/'+sponsor_node).once('value')
+	.then((snapshot) => {
+
+		let database = snapshot.val();
+
+		let data = {};
+		data["all_sponsors"] = new Array();
+
+		for(let sponsor_section in database) {
+
+			let type = {};
+			type["section"] = s;
+			type["sponsors"] = new Array();
+
+			for(let sponsor in database[sponsor_section]) {
+
+				type["sponsors"].push(database[sponsor_section][sponsor]);
+			}
+
+			data["all_sponsors"].push(type);
+		}
+		//res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+		return res.status(200).json({
+			data: data,
+			success: true
+		});
+	})
+	.catch(() => {
+
+		return res.status(500).json({
+			success: false,
+			message: 'could not fetch sponsors'
+		});
+	})
+}
+
+
+/**
+	* Function to add a new sponsor in the given section
+	* required: sponsor image url, sponsor section
+	*/
+function addSponsor(request, response) {
+	const image_url = request.body.sponsor.image_url;
+	const sponsor_section=request.body.sponssor.sponsor_section;
+	const sponsor_child=sponsor_node+'/'+sponsor_section;
+
+	var empty_fields = new Array();
+	if(image_url == undefined) {
+		empty_fields.push('image_url');
+	}
+	if(sponsor_section == undefined) {
+		empty_fields.push('sponsor_section');
+	}
+	if(empty_fields.length == 0)
+	{
+		database.ref().child(sponsor_child).push(request.body.sponsor);
+		response.status(200).json({
+			success:true,
+			message : "Sponsor successfully added"
+		});
+	}
+	else
+	{
+		const error_message = 'Following attributes found empty : '+ empty_fields;
+		response.status(400).json({
+			success:false,
+			message: error_message
+		});
+	}
 }
 
 exports.api = functions.https.onRequest(app);
