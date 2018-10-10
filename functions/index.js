@@ -918,7 +918,7 @@ function video(request,response) {
 // <-----Adding query to database------->
 // only add newly asked query to the database, if query will be null then it will return the empty query message else query will be added to database.
 function addQuery(request,response){
-	const query = request.query.text;
+	const query = request.body.text;
 	const email=request.body.email;
 
 	console.log(email);
@@ -1197,13 +1197,13 @@ function getSponsors(req, res) {
 			let type = {};
 			type["sponsorSection"] = sponsorSection;
 			type["sponsors"] = new Array();
-	
+
 			for(key in database[sponsorSection]) {
 
 				type["sponsors"].push(database[sponsorSection][key]);
 			}
 			data["sponsors"].push(type);
-			
+
 		}
 		//res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
 		return res.status(200).json({
