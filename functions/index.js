@@ -48,8 +48,8 @@ app.put('/user/event', isAuthenticated, eventRegister);
 
 app.get('/facts', randomFact);
 app.get('/videos', video);
-app.post('/query', isAuthenticated, addQuery)
-
+app.post('/query', isAuthenticated, addQuery);
+app.put('/admin/query',isAuthenticated, removeQuery);
 app.get('/timestamp', getTimestamp);
 app.get('/timestamp/events', getNextEvents);
 
@@ -923,11 +923,15 @@ function addQuery(request,response){
 
 	console.log(email);
 	console.log(query);
-
+	let date=Date.now();
 	const email_child='queries/'+email;
 	if(query !== undefined)
 	{
-		database.ref().child(email_child).push(query);
+		database.ref().child(email_child).child(date).set({
+			text:query,
+			id:date,
+			status:true,
+		});
 		response.status(200).json({
 			success:true,
 			message : "query successfully added"
@@ -1259,5 +1263,35 @@ function addSponsor(request, response) {
 		});
 	}
 }
+// function to remove a addQuery
+
+function removeQuery(req, response){
+	const id = req.body.id;
+	const email=req.body.email;
+	let data={};
+	const email_child='queries/'+email;
+	if(id !== undefined)
+	{
+		database.ref().child(email_child).child(id).update({
+			status:false,
+		});
+		response.status(200).json({
+			success:true,
+			message : "query successfully deleted"
+		});
+	}
+	else
+	{
+		response.status(400).json({
+			success:false,
+			message: "empty id"
+		})
+	}
+}
+
+
+
+
+
 
 exports.api = functions.https.onRequest(app);
