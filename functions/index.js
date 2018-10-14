@@ -1263,35 +1263,40 @@ function addSponsor(request, response) {
 		});
 	}
 }
-// function to remove a addQuery
 
-function removeQuery(req, response){
+
+// function to remove a addQuery
+function removeQuery(req, response) {
+
 	const id = req.body.id;
 	const email=req.body.email;
+	
+	if(id === undefined || email === undefined) {
+		return response.status(400).json({
+			success: false,
+			message: "Usage: email=userEmail&id=queryId"
+		});
+	}
+
 	let data={};
 	const email_child='queries/'+email;
-	if(id !== undefined)
-	{
-		database.ref().child(email_child).child(id).update({
-			status:false,
-		});
-		response.status(200).json({
+
+	db.child(email_child).child(id).update({
+		status:false,
+	})
+	.then(() => {
+		return response.status(200).json({
 			success:true,
 			message : "query successfully deleted"
 		});
-	}
-	else
-	{
-		response.status(400).json({
-			success:false,
-			message: "empty id"
+	})
+	.catch(() => {
+		return response.status(500).json({
+			success: false,
+			message: "error updating query status"
 		})
-	}
+	})
 }
-
-
-
-
 
 
 exports.api = functions.https.onRequest(app);
