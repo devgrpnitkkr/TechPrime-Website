@@ -1269,15 +1269,15 @@ function addSponsor(request, response) {
 function removeQuery(req, response) {
 
 	const id = req.body.id;
-	const email=req.body.email;
-	
+	let email=req.body.queryEmail;
+
 	if(id === undefined || email === undefined) {
 		return response.status(400).json({
 			success: false,
-			message: "Usage: email=userEmail&id=queryId"
+			message: "Usage: queryEmail=queryEmail&id=queryId"
 		});
 	}
-
+	email = email.replace(/\./g, ',');
 	let data={};
 	const email_child='queries/'+email;
 
