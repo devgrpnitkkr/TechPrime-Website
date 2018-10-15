@@ -13,12 +13,14 @@ const isAuthenticatedAdmin = (req, res, next) => {
         });
       }
       else {
-        let email = data.email  ;
-        email = email.replace(/\./g, '');
-        email = email.replace(/@/g, '');
-        //console.log('isAuthenticatedAdmin email = '+ email);
-        //console.log(admins[email]);
-        if(admins[email] === true)
+        // let email = data.email  ;
+        // email = email.replace(/\./g, '');
+        // email = email.replace(/@/g, '');
+        // //console.log('isAuthenticatedAdmin email = '+ email);
+        // //console.log(admins[email]);
+        // if(admins[email] === true)
+        let adminStatus=data.admin;
+        if(adminStatus===true)
         return next();
         else {
           res.status(401).json({
