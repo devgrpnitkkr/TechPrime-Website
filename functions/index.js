@@ -885,7 +885,7 @@ function signUp(req, response) {
 function randomFact(request,response) {
 	const numberOfLines = 8;
 	const randomIndex = Math.floor(Math.random() * numberOfLines);
-	database.ref('/facts/' + randomIndex).on('value',function(snapshot){
+	database.ref('/facts/' + randomIndex).once('value',function(snapshot){
 		console.log(snapshot.val());
 		// response.set('Cache-Control', 'public, max-age=30000 , s-maxage=60000');
 		let data={message:snapshot.val()};
