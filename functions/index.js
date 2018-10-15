@@ -747,6 +747,7 @@ function googleLogin(req, response) {
 					phone:snapshot.val().phone,
 					college:snapshot.val().college,
 					year:snapshot.val().year,
+					admin:snapshot.val().admin
 
 				}
 			}else {
@@ -755,10 +756,11 @@ function googleLogin(req, response) {
 					name:snapshot.val().name,
 					picture:snapshot.val().picture,
 					onBoard:snapshot.val().onBoard,
+					admin:snapshot.val().admin,
 				}
 			}
 
-			const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
+			const token = jwt.sign(jwttoken, config.key);
 			data={token:token};
 			return response.status(200).json({
 				onBoard:snapshot.val().onBoard,
@@ -770,7 +772,8 @@ function googleLogin(req, response) {
 				onBoard: false,
 				email: body.email,
 				name: body.name,
-				picture:body.picture
+				picture:body.picture,
+				admin:false,
 			});
 			/*data = {
 			onBoard: false,
@@ -783,8 +786,9 @@ function googleLogin(req, response) {
 			name:body.name,
 			picture:body.picture,
 			onBoard:false,
+			admin:false,
 		};
-		const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
+		const token = jwt.sign(jwttoken, config.key);
 		data={token:token};
 		return response.status(200).json({
 			onBoard:false,
@@ -858,8 +862,9 @@ function signUp(req, response) {
 					phone: req.body.phone,
 					college: req.body.college,
 					year: req.body.year,
+					admin:snapshot.val().admin,
 				}
-				const token = jwt.sign(jwttoken, config.key, {expiresIn: "12h"});
+				const token = jwt.sign(jwttoken, config.key);
 				let data={token:token};
 				return response.status(200).json({
 					success: true,
