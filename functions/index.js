@@ -61,6 +61,8 @@ app.get('/notification',getNotifications);
 
 app.get('/contacts', getContacts);
 
+app.get('/lectures', getLectures);
+
 
 /**
  * Route to obtain section wise sponsors
@@ -1301,6 +1303,40 @@ function removeQuery(req, response) {
 			message: "error updating query status"
 		})
 	})
+}
+
+
+//////////////////////////////
+		// LECTURES
+/////////////////////////////
+
+function getLectures(req, res) {
+	
+	db.child('/lectures').once('value')
+	.then((snapshot) => {
+
+		let allLectures = snapshot.val();
+
+		let data = {};
+		data["lectures"] =new Array();
+
+		for(lecture in allLectures) {
+
+			data["lectures"].push(allLectures[lecture]);
+		}
+
+		return res.status(200).json({
+			success:true,
+			data: data
+		})
+	})
+	.catch(() => {
+		return res.status(500).json({
+			success: false,
+			message: 'could not fetch lectures'
+		})
+	})
+
 }
 
 
