@@ -414,7 +414,7 @@ function getEventNames(req, res)
 
 			}
 			let success = true;
-			response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+			res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -449,7 +449,7 @@ function getEventNames(req, res)
 			}
 
 			var success = true;
-			// res.set('Cache-Control', 'public, max-age=18000 , s-maxage=18000');
+			res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 			return res.json({success:success,data:data});
 		})
 	}
@@ -471,7 +471,7 @@ function getCategories(req, res) {
 		}
 		message = "Categories received";
 		success = true;
-		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.json({message:message,success:success,data:data});
 	})
 	.catch((err) => {
@@ -601,7 +601,7 @@ function getEventDescription(req, res) {
 				data[events].push(eventData);
 			}
 
-			response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+			res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 			return res.status(200).json({
 				data: data,
 				success: true
@@ -628,7 +628,7 @@ function getEventDescription(req, res) {
 			}
 
 			data["eventCategory"] = categoryName;
-			response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+			res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 			return res.status(200).json({
 				data: data,
 				success: true
@@ -665,7 +665,7 @@ function getEventTimeline(req, res) {
 			}
 		}
 
-		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.status(200).json({
 			success:true,
 			data:data
@@ -892,15 +892,26 @@ function signUp(req, response) {
 function randomFact(request,response) {
 	const numberOfLines = 8;
 	const randomIndex = Math.floor(Math.random() * numberOfLines);
-	database.ref('/facts/' + randomIndex).once('value',function(snapshot){
-		console.log(snapshot.val());
+	
+	database.ref('/facts/' + randomIndex).once('value')
+	.then(function(snapshot){
+		// console.log(snapshot.val());
+		
 		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		
 		let data={message:snapshot.val()};
-		response.status(200).json({
+		
+		return response.status(200).json({
 			success:true,
 			data:data
 		});
-	});
+	})
+	.catch(() => {
+		return response.status(500).json({
+			success: false,
+			message: "could not fetch facts"
+		})
+	})
 }
 
 
@@ -1096,7 +1107,7 @@ function getContacts(req, res) {
 			data["contacts"].push(type);
 		}
 
-		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.status(200).json({
 			data: data,
 			success: true
@@ -1175,7 +1186,7 @@ function getNextEvents(req, res) {
 		}
 
 		// browser - 10 min, server - 15 min
-		response.set('Cache-Control', 'public, max-age=600 , s-maxage=900');
+		res.set('Cache-Control', 'public, max-age=600 , s-maxage=900');
 		return res.status(200).json({
 			success:true,
 			data: data
@@ -1217,7 +1228,7 @@ function getSponsors(req, res) {
 			data["sponsors"].push(type);
 
 		}
-		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.status(200).json({
 			data: data,
 			success: true
@@ -1326,7 +1337,7 @@ function getLectures(req, res) {
 			data["lectures"].push(allLectures[lecture]);
 		}
 
-		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.status(200).json({
 			success:true,
 			data: data
