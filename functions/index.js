@@ -1122,7 +1122,6 @@ function getContacts(req, res) {
 // gives next 1 hour events
 function getNextEvents(req, res) {
 
-
 	let timestamp = req.query.timestamp;
 
 	if(timestamp === undefined) {
@@ -1158,16 +1157,15 @@ function getNextEvents(req, res) {
 				if(timestamp >= startTime && timestamp <= endTime) {
 
 					let obj = {};
-					obj["status"] = "live";
+					obj["status"] = "LIVE!";
 					obj["eventDetails"] = database[category][event];
 
 					data[events].push(obj);
 				}
-
-				if(timestamp + 3600000 <= startTime) {
+				else if(startTime <= timestamp + 7200000 && startTime >= timestamp) {
 
 					let obj = {};
-					obj["status"] = "upcoming";
+					obj["status"] = "Upcoming";
 
 					obj["eventDetails"] = database[category][event];
 					data[events].push(obj);
