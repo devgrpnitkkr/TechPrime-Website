@@ -63,6 +63,9 @@ app.get('/contacts', getContacts);
 
 app.get('/lectures', getLectures);
 
+// added later for Google Assistant
+app.get('/events/search', getEventInformation);
+
 
 /**
  * Route to obtain section wise sponsors
@@ -83,6 +86,85 @@ app.use('/', (req, res) => {
 
 	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
 })
+
+
+
+
+
+// return event description with eventName only 
+// for assistant
+function getEventInformation(req, res) {
+
+	let eventName = req.query.eventName;
+
+	if(eventName === undefined) {
+
+		return res.status(400).json({
+			success:false,
+			message: "Usage: [GET] eventName=name"
+		})
+	}
+
+	let x = eventName;
+	eventName = eventName.toLowerCase();
+
+	db.child(eventDescription).once('value')
+	.then((snapshot) => {
+
+		let allData = snapshot.val();
+
+		for(let category in allData) {
+
+			for(let event in allData[category]) {
+
+				let name = event.toLowerCase();
+				if(eventName === name) {
+
+					// caching = 12hr (server), 6hr (browser)
+					res.set('Cache-Control', 'public, max-age=21600 , s-maxage=43200');
+					return res.status(200).json({
+						success: true,
+						data: allData[category][event]
+					})
+
+				}	
+			}
+		}
+
+		return res.status(404).json({
+			success: false,
+			message: `${x} event not found`
+		})
+	})
+	.catch((err) => {
+
+		return res.status(500).json({
+			success: false,
+			message: "could not fetch event description",
+			err: err
+		})
+	})
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // return users registered in one single event
@@ -1174,7 +1256,7 @@ function getNextEvents(req, res) {
 
 					data[events].push(obj);
 				}
-				else if(startTime <= timestamp + 7200000 && startTime >= timestamp) {
+				else if(startTime <= timestamp + 432000000 && startTime >= timestamp) {
 
 					let obj = {};
 					obj["status"] = "Upcoming";
