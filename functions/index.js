@@ -746,7 +746,6 @@ function getEventTimeline(req, res) {
 				data[events].push(eventData);
 			}
 		}
-
 		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.status(200).json({
 			success:true,
@@ -1267,6 +1266,9 @@ function getNextEvents(req, res) {
 			}
 		}
 
+
+		data["events"].sort(sortOrder("startTime"));
+
 		// browser - 10 min, server - 15 min
 		res.set('Cache-Control', 'public, max-age=600 , s-maxage=900');
 		return res.status(200).json({
@@ -1281,6 +1283,21 @@ function getNextEvents(req, res) {
 		})
 	})
 
+}
+
+function sortOrder(prop) {
+
+	return function(a, b) {
+
+		if(a["eventDetails"][prop] > b["eventDetails"][prop]) {
+			return 1;
+		}
+		else if(a["eventDetails"][prop] < b["eventDetails"][prop]) {
+			return -1;
+		}
+		return 0;
+
+	}
 }
 
 /**
