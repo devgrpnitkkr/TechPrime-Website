@@ -66,16 +66,14 @@ app.get('/lectures', getLectures);
 // added later for Google Assistant
 app.get('/events/search', getEventInformation);
 
-
-/**
- * Route to obtain section wise sponsors
-*/
+// Route to obtain section wise sponsors
 app.get('/sponsors', getSponsors);
 
-/**
- * Route to add a sponsor to a section
-*/
+// Route to add a sponsor to a section
 app.post('/sponsors', addSponsor);
+
+// app.post('/about', addDeveloper);
+app.get('/about', getDeveloper);
 
 app.use('/', (req, res) => {
 
@@ -86,9 +84,6 @@ app.use('/', (req, res) => {
 
 	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
 })
-
-
-
 
 
 // return event description with eventName only 
@@ -146,25 +141,6 @@ function getEventInformation(req, res) {
 	})
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // return users registered in one single event
@@ -238,9 +214,6 @@ function getEventUsers(req, res) {
 
 
 }
-
-
-
 
 
 function matchEventDescription(database, data) {
@@ -325,22 +298,6 @@ function getRegisteredEvents(req, res)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //send time stamp of the server
 function getTimestamp(req, res) {
 
@@ -349,15 +306,6 @@ function getTimestamp(req, res) {
 		timestamp: Date.now()
 	}));
 }
-
-
-
-
-
-
-
-
-
 
 
 // registeredEvents
@@ -458,8 +406,6 @@ function eventRegister(request, response)
 
 
 }
-
-
 
 
 //return eventName
@@ -1451,5 +1397,78 @@ function getLectures(req, res) {
 
 }
 
+
+
+///////////////////////
+////Devlopers/////////
+
+
+// only for localhost - not deployed
+// function addDeveloper(req, res) {
+
+// 	let name = req.body.name;
+// 	let link = req.body.link;
+// 	let year = parseInt(req.body.year);
+
+// 	db.child('about').push({
+// 		name: name,
+// 		link: link,
+// 		year: year
+// 	})
+// 	.then(() => {
+// 		return res.status(200).json({
+// 			success: true,
+// 			message: "developer added"
+// 		})
+// 	})
+// 	.catch(() => {
+// 		return res.status(500).json({
+// 			success: false,
+// 			message: "could not add"
+// 		})
+// 	})
+// }
+
+function getDeveloper(req, res) {
+
+	db.child('about').once('value')
+	.then((snapshot) => {
+
+		let data = {devs: []};
+
+		let devs = snapshot.val();
+		for(let key in devs) {
+
+			data["devs"].push(devs[key]);
+		}
+
+		data["devs"].sort(function (a, b) {
+
+			// if((parseInt(b["year"]) - parseInt(a["year"])) === 0) {
+
+			// 	if(a["name"] < b["name"]) {
+			// 		return -11;
+			// 	}
+			// 	else {
+			// 		return 0
+			// 	}
+			// }
+			return parseInt(b["year"]) - parseInt(a["year"]);
+		})
+
+		return res.status(200).json({
+			success: true,
+			data: data
+		})
+	})
+	.catch(() => {
+
+		return res.status(500).json({
+			success: false,
+			message: "error fetching developers"
+		})
+	})
+
+}
 
 exports.api = functions.https.onRequest(app);
