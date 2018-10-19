@@ -1455,7 +1455,7 @@ function getDeveloper(req, res) {
 			// }
 			return parseInt(b["year"]) - parseInt(a["year"]);
 		})
-
+		res.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		return res.status(200).json({
 			success: true,
 			data: data
