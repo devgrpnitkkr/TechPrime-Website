@@ -924,7 +924,7 @@ function randomFact(request,response) {
 	.then(function(snapshot){
 		// console.log(snapshot.val());
 		
-		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
+		//response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		
 		let data={message:snapshot.val()};
 		
