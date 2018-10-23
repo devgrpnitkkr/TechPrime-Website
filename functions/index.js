@@ -86,7 +86,7 @@ app.use('/', (req, res) => {
 })
 
 
-// return event description with eventName only 
+// return event description with eventName only
 // for assistant
 function getEventInformation(req, res) {
 
@@ -122,7 +122,7 @@ function getEventInformation(req, res) {
 						data: allData[category][event]
 					})
 
-				}	
+				}
 			}
 		}
 
@@ -919,15 +919,15 @@ function signUp(req, response) {
 function randomFact(request,response) {
 	const numberOfLines = 8;
 	const randomIndex = Math.floor(Math.random() * numberOfLines);
-	
+
 	database.ref('/facts/' + randomIndex).once('value')
 	.then(function(snapshot){
 		// console.log(snapshot.val());
-		
+
 		//response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
-		
+
 		let data={message:snapshot.val()};
-		
+
 		return response.status(200).json({
 			success:true,
 			data:data
@@ -949,7 +949,7 @@ function video(request,response) {
 	return database.ref('/videos').once('value')
 	.then((snapshot) => {
 
-		// browser caching - 1hr, server caching - 2hr 
+		// browser caching - 1hr, server caching - 2hr
 		response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
 		let data=snapshot.val();
 		return response.status(200).json({success:true,data:data});
@@ -1288,6 +1288,55 @@ function getSponsors(req, res) {
 	})
 }
 
+function sponsorStatic(req, res)
+{
+	let data={
+    "data": {
+        "sponsors": [
+			{
+                "sponsorSection": "Title Sponsor",
+                "sponsors": [
+                    {
+                        "imageUrl": "https://yt3.ggpht.com/a-/AN66SAyMrep39LM9mP3UoP9divyz3PI2Y90cyJ7sDA=s900-mo-c-c0xffffffff-rj-k-no",
+                        "targetUrl": "https://www.iocl.com/"
+                    }
+                ]
+            },
+			{
+                "sponsorSection": "Official Gifting Partner",
+                "sponsors": [
+                    {
+                        "imageUrl": "https://doc-0o-ao-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/pnlsq2grsc8amui2a68ent8sj8ghq45r/1540267200000/02432375450088499525/*/1JSALWDtInz9ktDNauGt5NG95VGRmI6kN",
+                        "targetUrl": "https://www.redwolf.in/"
+                    }
+                ]
+            },
+			{
+                "sponsorSection": "Official Travel Partner",
+                "sponsors": [
+                    {
+                        "imageUrl": "https://doc-08-ao-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/98l3oe0dcn5me3s6kieln48lqoshoj1u/1540274400000/02432375450088499525/*/1lF1zB_3cbmelgI6S9C0c8R74SB3OUAD9",
+                        "targetUrl": "https://easemytrip.com/"
+                    }
+                ]
+            },
+            {
+                "sponsorSection": "Official Beauty Partner",
+                "sponsors": [
+                    {
+                        "imageUrl": "https://doc-08-ao-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/jp9o2f0tg0ork7e8tfslgq4uhmfuu118/1540274400000/02432375450088499525/*/1i6m5X9ZA5miNgCh70v8ckwCRYpOSpSAk",
+                        "targetUrl": "http://www.mrkhanhairxpenso.com/index.php"
+                    }
+                ]
+            },
+
+
+        ]
+    },
+    "success": true
+};
+	res.status(200).json(data)
+}
 
 /**
 	* Function to add a new sponsor in the given section
@@ -1368,7 +1417,7 @@ function removeQuery(req, response) {
 /////////////////////////////
 
 function getLectures(req, res) {
-	
+
 	db.child('/lectures').once('value')
 	.then((snapshot) => {
 
