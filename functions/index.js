@@ -67,7 +67,7 @@ app.get('/lectures', getLectures);
 app.get('/events/search', getEventInformation);
 
 // Route to obtain section wise sponsors
-app.get('/sponsors', getSponsors);
+app.get('/sponsors', sponsorStatic);
 
 // Route to add a sponsor to a section
 app.post('/sponsors', addSponsor);
