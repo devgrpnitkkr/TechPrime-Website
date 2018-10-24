@@ -1306,7 +1306,7 @@ function sponsorStatic(req, res)
                 "sponsorSection": "Official Gifting Partner",
                 "sponsors": [
                     {
-                        "imageUrl": "https://doc-0o-ao-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/pnlsq2grsc8amui2a68ent8sj8ghq45r/1540267200000/02432375450088499525/*/1JSALWDtInz9ktDNauGt5NG95VGRmI6kN",
+                        "imageUrl": "https://firebasestorage.googleapis.com/v0/b/techspardha-87928.appspot.com/o/main-logo-white.png?alt=media&token=c98fd6de-b17b-421d-8ef1-f49067848881",
                         "targetUrl": "https://www.redwolf.in/"
                     }
                 ]
@@ -1315,7 +1315,7 @@ function sponsorStatic(req, res)
                 "sponsorSection": "Official Travel Partner",
                 "sponsors": [
                     {
-                        "imageUrl": "https://doc-08-ao-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/98l3oe0dcn5me3s6kieln48lqoshoj1u/1540274400000/02432375450088499525/*/1lF1zB_3cbmelgI6S9C0c8R74SB3OUAD9",
+                        "imageUrl": "https://firebasestorage.googleapis.com/v0/b/techspardha-87928.appspot.com/o/EaseMyTrip%20Logo.png?alt=media&token=9d24fbc4-1f93-4800-bd34-4c16c1161675",
                         "targetUrl": "https://easemytrip.com/"
                     }
                 ]
@@ -1324,7 +1324,7 @@ function sponsorStatic(req, res)
                 "sponsorSection": "Official Beauty Partner",
                 "sponsors": [
                     {
-                        "imageUrl": "https://doc-08-ao-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/jp9o2f0tg0ork7e8tfslgq4uhmfuu118/1540274400000/02432375450088499525/*/1i6m5X9ZA5miNgCh70v8ckwCRYpOSpSAk",
+                        "imageUrl": "https://firebasestorage.googleapis.com/v0/b/techspardha-87928.appspot.com/o/download.png?alt=media&token=4579dec1-fcdb-4384-a986-22c72f2c2855",
                         "targetUrl": "http://www.mrkhanhairxpenso.com/index.php"
                     }
                 ]
