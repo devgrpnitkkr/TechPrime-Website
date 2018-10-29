@@ -1290,7 +1290,7 @@ function getSponsors(req, res) {
 
 function sponsorStatic(req, res)
 {
-	let data={
+	let data = {
     "data": {
         "sponsors": [
 			{
@@ -1329,8 +1329,15 @@ function sponsorStatic(req, res)
                     }
                 ]
             },
-
-
+            {
+                "sponsorSection": "Audio Visual Partner",
+                "sponsors": [
+                    {
+                        "imageUrl": "http://hardwarefix.in/wp-content/uploads/2015/10/zebronics.png",
+                        "targetUrl": "https://www.zebronics.com"
+                    }
+                ]
+            }
         ]
     },
     "success": true
