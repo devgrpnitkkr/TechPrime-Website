@@ -25,6 +25,7 @@ const queries = "queries";
 const googleUrl = 'https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=';
 const notifications='notifications';
 const sponsorNode = 'sponsors';
+const appDevelopers = 'aboutAppDevs';
 // express
 const app = express();
 app.use(bodyParser.urlencoded({extended:false}));
@@ -74,6 +75,7 @@ app.post('/sponsors', addSponsor);
 
 // app.post('/about', addDeveloper);
 app.get('/about', getDeveloper);
+app.get('/aboutAppDevs', getAppDevelopers);
 
 app.use('/', (req, res) => {
 
@@ -84,6 +86,31 @@ app.use('/', (req, res) => {
 
 	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
 })
+
+function getAppDevelopers(req, res) {
+
+	db.child(appDevelopers).once('value')
+	.then((snapshot) => {
+
+		let information = snapshot.val();
+
+		return res.status(200).json({
+			success: true,
+			message: "info received",
+			data: {
+				information
+			}
+		});
+	})
+	.catch((err) => {
+
+		return res.status(500).json({
+			success: false,
+			message: "Internal Server Error. Could not fetch app developers.",
+			error: err
+		});
+	});
+}
 
 
 // return event description with eventName only
@@ -1292,7 +1319,7 @@ function sponsorStatic(req, res)
 {
 	let data = {
     "data": {
-        "sponsors": [
+        "paisa": [
 			{
                 "sponsorSection": "Title Sponsor",
                 "sponsors": [
