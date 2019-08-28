@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const admins = require('../admins');
+
+
 const isAuthenticatedAdmin = (req, res, next) => {
   const token = req.headers.authorization;
 

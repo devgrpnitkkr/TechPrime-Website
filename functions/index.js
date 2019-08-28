@@ -35,9 +35,13 @@ app.use(bodyParser.urlencoded({extended:false}));
 // routes
 app.use(cors({origin: true}));
 
-
+// Login and Onboard
+// Web
 app.post('/login', googleLogin);
 app.put('/user', isAuthenticated, signUp);
+// Android
+app.post('/loginApp', googleLoginApp);
+app.put('/signUpApp', signUpApp);
 
 app.get('/events', getEventNames);
 app.get('/events/categories', getCategories);
@@ -358,13 +362,12 @@ function eventRegister(request, response)
 			message: `Invalid Parameters.\n Usage: eventName=event&eventCategory=category`
 		})
 	}
-	else
-	{
+	else {
 		value = false;
 	}
 
-	if(value === false)
-	{
+	if(value === false) {
+		
 		// get previsouly registered events
 		db.child(users + "/" + email + "/" + registeredEvents).once('value')
 		.then((snapshot) => {
@@ -763,9 +766,95 @@ function getEventTimeline(req, res) {
 *           400:
 *               description: error
 */
+function googleLoginApp(req, res) {
+
+	request(googleUrl + req.body.idToken, {json: true}, (err, response, body) => {
+
+		if(err) {
+			return res.status(400).json({
+				success: false,
+				error: err
+			});
+		}
+
+		if(body.error_description !== undefined) {
+			return res.status(401).json({
+				success: false,
+				message: 'empty/invalid body received',
+				error: `unauthenticated request: ${body.error_description}`
+			})
+		}
+
+		let email1 = body.email;
+		let email = email1.replace(/\./g, ',');
+		let email_child = "users/" + email;
+		let ref = database.ref().child(email_child);
+
+		let info;
+
+		ref.once('value', (snapshot) => {
+
+			if(snapshot.val()) {
+				
+				if(snapshot.val().onBoard === true) {
+
+					info = {
+						email:snapshot.val().email,
+						name:snapshot.val().name,
+						picture:snapshot.val().picture,
+						onBoard:snapshot.val().onBoard,
+						phone:snapshot.val().phone,
+						college:snapshot.val().college,
+						year:snapshot.val().year,
+						admin:snapshot.val().admin
+					};
+				} else {
+					
+					info = {
+						email:snapshot.val().email,
+						name:snapshot.val().name,
+						picture:snapshot.val().picture,
+						onBoard:snapshot.val().onBoard,
+						admin:snapshot.val().admin,
+					};
+				}
+
+				return res.status(200).json({
+					success: true,
+					onBoard: true,
+					information: info
+				});
+			} else {
+
+				database.ref(email_child).set({
+					onBoard: false,
+					email: body.email,
+					name: body.name,
+					picture:body.picture,
+					admin:false,
+				});	
+				
+				info = {
+					email:body.email,
+					name:body.name,
+					picture:body.picture,
+					onBoard:false,
+					admin:false,
+				};
+
+				return res.status(200).json({
+					success: true,
+					onBoard: false,
+					information: info
+				});
+			}
+		});
+	});
+}
 function googleLogin(req, response) {
 
 	request(googleUrl + req.body.idToken, {json: true}, (err, res, body) => {
+
 		let data;
 		if (err) {
 
@@ -784,77 +873,75 @@ function googleLogin(req, response) {
 		let email = email1.replace(/\./g, ',');
 		let email_child = "users/" + email;
 		let ref = database.ref().child(email_child);
-		let picture =body.picture;
+		let picture = body.picture;
 		ref.once('value', (snapshot) => {
 			if (snapshot.val()) {
+
 				/*	data = {
 				onBoard: snapshot.val().onBoard,
 				authenticatedRequest: true,
 				isRegistered: true,
 				body: body
 			};*/
-			if(snapshot.val().onBoard===true)
-			{
-				jwttoken={
-					email:snapshot.val().email,
-					name:snapshot.val().name,
-					picture:snapshot.val().picture,
-					onBoard:snapshot.val().onBoard,
-					phone:snapshot.val().phone,
-					college:snapshot.val().college,
-					year:snapshot.val().year,
-					admin:snapshot.val().admin
 
+				if(snapshot.val().onBoard === true)
+				{
+					jwttoken = {
+						email:snapshot.val().email,
+						name:snapshot.val().name,
+						picture:snapshot.val().picture,
+						onBoard:snapshot.val().onBoard,
+						phone:snapshot.val().phone,
+						college:snapshot.val().college,
+						year:snapshot.val().year,
+						admin:snapshot.val().admin
+					};
+				} else {
+					jwttoken = {
+						email:snapshot.val().email,
+						name:snapshot.val().name,
+						picture:snapshot.val().picture,
+						onBoard:snapshot.val().onBoard,
+						admin:snapshot.val().admin,
+					};
 				}
-			}else {
-				jwttoken={
-					email:snapshot.val().email,
-					name:snapshot.val().name,
-					picture:snapshot.val().picture,
+
+				const token = jwt.sign(jwttoken, config.key);
+				data={token:token};
+				return response.status(200).json({
 					onBoard:snapshot.val().onBoard,
-					admin:snapshot.val().admin,
-				}
+					success: true, data:data
+				});
 			}
+			else {
+				database.ref(email_child).set({
+					onBoard: false,
+					email: body.email,
+					name: body.name,
+					picture:body.picture,
+					admin:false,
+				});
 
-			const token = jwt.sign(jwttoken, config.key);
-			data={token:token};
-			return response.status(200).json({
-				onBoard:snapshot.val().onBoard,
-				success: true, data:data
-			});
-		}
-		else {
-			database.ref(email_child).set({
-				onBoard: false,
-				email: body.email,
-				name: body.name,
-				picture:body.picture,
-				admin:false,
-			});
-			/*data = {
-			onBoard: false,
-			authenticatedRequest: true,
-			isRegistered: false,
-			body: body
-		};*/
-		jwttoken={
-			email:body.email,
-			name:body.name,
-			picture:body.picture,
-			onBoard:false,
-			admin:false,
-		};
-		const token = jwt.sign(jwttoken, config.key);
-		data={token:token};
-		return response.status(200).json({
-			onBoard:false,
-			success: true, data:data
+				jwttoken = {
+					email:body.email,
+					name:body.name,
+					picture:body.picture,
+					onBoard:false,
+					admin:false,
+				};
+
+				const token = jwt.sign(jwttoken, config.key);
+				data = { token: token };
+
+				return response.status(200).json({
+					onBoard:false,
+					success: true, data:data
+				});
+			}
 		});
-	}
-});
-});
-
+	});
 }
+
 
 
 
@@ -884,6 +971,72 @@ function googleLogin(req, response) {
 *           403:
 *               description: user does not exist
 */
+function signUpApp(req, res) {
+
+	if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
+		return res.status(400).json({
+			success: false,err:'please pass valid/complete url parameters'
+		});
+	}
+
+	if(req.body.email === undefined) {
+		return res.status(400).json({
+			success: false,
+			message: "unauthenticated, email reqd",
+		});
+	}
+
+	let email1 = req.body.email;
+	let email = email1.replace(/\./g, ',');
+	let ref = database.ref('users/' + email);
+
+	ref.once('value', (snapshot) => {
+
+		if(snapshot.val() === null || snapshot.val() === undefined) {
+
+			return res.status(403).json({
+				success: false,
+				err:'user does not exist'
+			});
+
+		} else if (snapshot.val().onBoard === false) {
+			
+			ref.update({
+				onBoard: true,
+				phone: req.body.phone,
+				college: req.body.college,
+				year: req.body.year,
+			});
+			
+			let info = {
+				email:snapshot.val().email,
+				name:snapshot.val().name,
+				picture:snapshot.val().picture,
+				onBoard: true,
+				phone: req.body.phone,
+				college: req.body.college,
+				year: req.body.year,
+				admin:snapshot.val().admin,
+			}
+			
+			
+			return res.status(200).json({
+				success: true,
+				message: "user onboarded",
+				information: info
+			});
+
+		} else {
+			
+			return res.status(405).json({
+				success:false,
+				err:'not allowed, already onboarded'
+			});
+		
+		}
+	});
+}
+
 function signUp(req, response) {
 
 	if (req.body.phone === undefined || req.body.college === undefined || req.body.year === undefined) {
@@ -895,8 +1048,10 @@ function signUp(req, response) {
 		let email = req.body.email;
 		let ref = database.ref('users/'+email);
 
-		ref.once('value', function (snapshot) {
+		ref.once('value', (snapshot) => {
+
 			if(snapshot.val()===null || snapshot.val()===undefined){
+
 				return response.status(403).json({
 					success: false,
 					err:'user does not exist'
@@ -904,12 +1059,14 @@ function signUp(req, response) {
 
 			}
 			else if (snapshot.val().onBoard===false) {
+
 				ref.update({
 					onBoard: true,
 					phone: req.body.phone,
 					college: req.body.college,
 					year: req.body.year,
 				});
+
 				jwttoken={
 					email:snapshot.val().email,
 					name:snapshot.val().name,
@@ -948,7 +1105,7 @@ function randomFact(request,response) {
 	const randomIndex = Math.floor(Math.random() * numberOfLines);
 
 	database.ref('/facts/' + randomIndex).once('value')
-	.then(function(snapshot){
+	.then((snapshot) => {
 		// console.log(snapshot.val());
 
 		//response.set('Cache-Control', 'public, max-age=3600 , s-maxage=7200');
@@ -961,6 +1118,7 @@ function randomFact(request,response) {
 		});
 	})
 	.catch(() => {
+
 		return response.status(500).json({
 			success: false,
 			message: "could not fetch facts"
