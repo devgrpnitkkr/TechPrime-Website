@@ -303,7 +303,11 @@ function matchEventDescription(database, data) {
 
 function appGetRegisteredEvents(req, res, next) {
 
-	let id = req.body.email;
+	console.log("Here");
+	
+
+	let id = req.query.email;
+	console.log(id);
 	if(id === undefined || id === null) {
 
 		return res.status(400).json({
@@ -312,13 +316,16 @@ function appGetRegisteredEvents(req, res, next) {
 		});
 	}
 
-	next();
+	id = id.replace(/\./g, ',');
+	req.body.email = id;
+	return next();
 }
 
 
 function getRegisteredEvents(req, res)
 {
 	let email = req.body.email;
+	console.log(email);
 
 	db.child(users + "/" + email + "/" + registeredEvents).once('value')
 	.then((snapshot) => {
@@ -326,15 +333,19 @@ function getRegisteredEvents(req, res)
 		let database = snapshot.val();
 		let data = {};
 
+		console.log(database);
+		
+
 		return matchEventDescription(database, data)
 		.then((data) => {
+
 			return res.status(200).json({
 				success: true,
 				data: data
 			});
 		})
 		.catch((errData) => {
-			return res.json(errData);
+			return res.status(500).json(errData);
 		})
 	})
 	.catch(() => {
@@ -1712,7 +1723,7 @@ function getDeveloper(req, res) {
 			data["devs"].push(devs[key]);
 		}
 
-		data["devs"].sort(function (a, b) {
+		data["devs"].sort((a, b) => {
 
 			// if((parseInt(b["year"]) - parseInt(a["year"])) === 0) {
 
