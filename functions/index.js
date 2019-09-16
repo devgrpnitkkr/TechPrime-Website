@@ -20,12 +20,13 @@ const events = "events";
 const eventDescription = "eventDescription";
 const userRegistrations = "userRegistrations";
 const users = "users";
-const registeredEvents = "registeredEvents";
+const registeredEvents = "registeredEvents19";
 const queries = "queries";
 const googleUrl = 'https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=';
 const notifications='notifications';
 const sponsorNode = 'sponsors';
 const appDevelopers = 'aboutAppDevs';
+const food = 'food';
 // express
 const app = express();
 app.use(bodyParser.urlencoded({extended:false}));
@@ -76,13 +77,18 @@ app.get('/events/search', getEventInformation);
 
 // Route to obtain section wise sponsors
 app.get('/sponsors', sponsorStatic);
+app.get('/foodSponsors', foodSponsors);
 
 // Route to add a sponsor to a section
 app.post('/sponsors', addSponsor);
 
+
 // app.post('/about', addDeveloper);
 app.get('/about', getDeveloper);
 app.get('/aboutAppDevs', getAppDevelopers);
+
+// updated user info
+// app.get('/updateUsers', updateUsers);
 
 app.use('/', (req, res) => {
 
@@ -91,8 +97,96 @@ app.use('/', (req, res) => {
 	let message = "connected to server";
 	let anotherMessage = "C'mon we created so many routes, use them!!";
 
-	res.status(404).json({success:success,message:message,anotherMessage:anotherMessage});
+	res.status(404).json({
+		success:success,
+		message:message,
+		anotherMessage:anotherMessage
+	});
 })
+
+function foodSponsors(req, res) {
+
+	db.child(food).once('value')
+	.then((snapshot) => {
+
+		let data = snapshot.val();
+		if(!data) {
+
+			return res.status(500).json({
+				success: false,
+				message: "No Food"
+			});
+		}
+
+		return res.status(200).json({
+			success: true,
+			data: {
+				foodSponsors: data
+			}
+		});
+	})
+	.catch((err) => {
+
+		return res.status(500).json({
+			success: false,
+			message: "Internal Server Error. Try Again!",
+			error: err
+		});
+	});
+}
+
+function updateUsers(req, res) {
+
+	db.child('users').once('value')
+	.then((snapshot) => {
+
+		let data = snapshot.val();
+		let users = Object.keys(data);
+
+		let final = [];
+
+		for(let i = 0 ; i < users.length ; i++) {
+
+			// if(data[users[i]]["onBoard"] === true)
+			// {
+			// 	let zz = '';
+			// 	if(data[users[i]]["year"] === 'First')
+			// 		zz = 'Second';
+			// 	else if(data[users[i]]["year"] === 'Second')
+			// 		zz = 'Third';
+			// 	else if(data[users[i]]["year"] === 'Third')
+			// 		zz = 'Fourth';
+			// 	else if(data[users[i]]["year"] === 'Graduate')
+			// 		zz = 'Graduated';
+
+
+				final.push(db.child('users').child(users[i]).update({
+					onBoard: false
+				}));
+			// }
+
+		}
+
+		// eslint-disable-next-line promise/no-nesting
+		return Promise.all(final)
+		.then(() => {
+
+			return res.status(200).json({
+				success: true
+			});
+		})
+		.catch((err) => {
+			return res.status(200).json({
+				err: err
+			});
+		})
+	})
+	.catch((err) => {
+
+		return res.send(err);
+	})
+}
+
 
 function getAppDevelopers(req, res) {
 
@@ -303,10 +397,7 @@ function matchEventDescription(database, data) {
 
 function appGetRegisteredEvents(req, res, next) {
 
-	console.log("Here");
-	
-
-	let id = req.query.email;
+	let id = req.body.email;
 	console.log(id);
 	if(id === undefined || id === null) {
 
@@ -331,6 +422,18 @@ function getRegisteredEvents(req, res)
 	.then((snapshot) => {
 
 		let database = snapshot.val();
+
+		if(!database) {
+
+			return res.status(400).json({
+				success: false,
+				message: "No events registered",
+				data: {
+					events: []
+				}
+			});
+		}
+
 		let data = {};
 
 		console.log(database);
@@ -370,7 +473,7 @@ function getTimestamp(req, res) {
 function appEventRegister(req, res, next) {
 
 	let em = req.body.email;
-
+	
 	if(em === undefined || em === null) {
 
 		res.status(400).json({
@@ -379,6 +482,7 @@ function appEventRegister(req, res, next) {
 		});
 	}
 
+	em = em.replace(/\./g, ',');
 	req.body.email = em;
 
 	next();
@@ -446,7 +550,7 @@ function eventRegister(request, response)
 
 		// update user registered events
 		db.child(users + "/" + email).update({
-			"registeredEvents": registeredEvent
+			[registeredEvents]: registeredEvent
 		})
 		.then(() => {
 
