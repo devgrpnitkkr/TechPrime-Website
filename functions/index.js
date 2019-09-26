@@ -1637,14 +1637,14 @@ function sponsorStatic(req, res)
 					"sponsors": [
 						{
 							"imageUrl": "https://i.ibb.co/rbytcLS/2-IIM-Original-Logo.png",
-							"targetUrl": ""
+							"targetUrl": "https://www.2iim.com/"
 						},
 						{
 							"imageUrl": "https://www.stbaldricks.org/photo/event/6249/2019/large",
 							"targetUrl": "https://ihsmarkit.com"
 						},
 						{
-							"imageUrl": "data:image/png;base64,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",
+							"imageUrl": "https://pbs.twimg.com/media/CFWHUNrUMAAlDfz.jpg",
 							"targetUrl": "https://www.swiggy.com/"
 						}
 					]
@@ -1663,7 +1663,7 @@ function sponsorStatic(req, res)
 					"sponsors": [
 						{
 							"imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/The_Pioneer_logo.jpg",
-							"targetUrl": ""
+							"targetUrl": "https://www.dailypioneer.com/"
 						}
 					]
 				}
